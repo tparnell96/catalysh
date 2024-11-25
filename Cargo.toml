@@ -9,7 +9,7 @@ readme = "README.md"
 documentation = "https://github.com/tparnell96/catsh"
 keywords = ["networking", "cisco", "dnac", "catalyst", "cli"]
 categories = ["command-line-utilities"]
-exclude = ["/target"]
+exclude = ["/target", "Cargo.lock", ".github/workflows/rust.yml", ".cargo_vcs_info.json"]
 [dependencies]
 clap-repl = "0.3.0"
 clap = { version = "4.0.32", features = ["derive"] }
