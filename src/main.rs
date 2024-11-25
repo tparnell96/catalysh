@@ -18,7 +18,7 @@ mod utils;
 #[derive(Debug, Parser)]
 #[command(name = "")] // Name is empty to avoid it showing in error messages
 enum CliCommand {
-    Inventory {
+    Devices {
         /// Get all devices
         #[arg(short, long)]
         all: bool,
@@ -51,7 +51,7 @@ fn main() {
 
     rl.repl(|command| {
         match command {
-            CliCommand::Inventory { all } => {
+            CliCommand::Devices { all } => {
                 handle_inventory(all);
             }
             CliCommand::Config { reset } => {
