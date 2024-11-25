@@ -44,7 +44,7 @@ fn main() {
         .with_prompt(Box::new(prompt))
         .with_editor_hook(|reed| {
             reed.with_history(Box::new(
-                FileBackedHistory::with_file(10000, "/tmp/dnac-cli-history".into()).unwrap(),
+                FileBackedHistory::with_file(10000, "/tmp/catsh-cli-history".into()).unwrap(),
             ))
         })
         .build();
