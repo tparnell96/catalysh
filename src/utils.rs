@@ -1,4 +1,4 @@
-use crate::api::Device;
+use crate::api::devices::Device;
 use chrono::Utc;
 use prettytable::{row, Table};
 

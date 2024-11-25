@@ -7,7 +7,9 @@ use clap_repl::reedline::{
 use clap_repl::ClapEditor;
 use log::error;
 
-mod api;
+mod api {
+    pub mod devices;
+}
 mod auth;
 mod config;
 mod utils;
@@ -83,7 +85,7 @@ fn handle_inventory(all: bool) {
         };
 
         if all {
-            match api::get_all_devices(&config, &token).await {
+            match api::devices::get_all_devices(&config, &token).await {
                 Ok(devices) => utils::print_devices(devices),
                 Err(e) => error!("Failed to retrieve devices: {}", e),
             }
