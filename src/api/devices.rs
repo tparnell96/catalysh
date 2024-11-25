@@ -1,4 +1,4 @@
-use crate::auth::{self, Token};
+use crate::api::auth::{self, Token};
 use crate::config::Config;
 use anyhow::{anyhow, Result};
 use reqwest::Client;

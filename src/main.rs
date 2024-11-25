@@ -8,9 +8,9 @@ use clap_repl::ClapEditor;
 use log::error;
 
 mod api {
+    pub mod auth;
     pub mod devices;
 }
-mod auth;
 mod config;
 mod utils;
 
@@ -76,7 +76,7 @@ fn handle_inventory(all: bool) {
             }
         };
 
-        let token = match auth::authenticate(&config).await {
+        let token = match api::auth::authenticate(&config).await {
             Ok(t) => t,
             Err(e) => {
                 error!("Authentication failed: {}", e);
