@@ -33,7 +33,7 @@ fn main() {
     env_logger::init();
 
     let prompt = DefaultPrompt {
-        left_prompt: DefaultPromptSegment::Basic("Cat-CLI".to_owned()),
+        left_prompt: DefaultPromptSegment::Basic("catsh".to_owned()),
         ..DefaultPrompt::default()
     };
 
