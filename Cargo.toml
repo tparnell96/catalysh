@@ -1,8 +1,15 @@
 [package]
 name = "catsh"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
-
+repository = "https://github.com/tparnell96/catsh"
+homepage = "https://github.com/tparnell96/catsh"
+license-file = "LICENSE"
+readme = "README.md"
+documentation = "https://github.com/tparnell96/catsh"
+keywords = ["networking", "cisco", "dnac", "catalyst", "cli"]
+categories = ["command-line-utilities"]
+exclude = ["/target"]
 [dependencies]
 clap-repl = "0.3.0"
 clap = { version = "4.0.32", features = ["derive"] }
