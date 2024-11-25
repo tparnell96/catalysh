@@ -58,7 +58,7 @@ fn main() {
                 handle_config(reset);
             }
             CliCommand::Exit => {
-                println!("Exiting Catalyst Center CLI...");
+                println!("Exiting catsh...");
                 std::process::exit(0);
             }
         }
