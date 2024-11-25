@@ -25,7 +25,7 @@ impl Config {
 
 pub fn get_config_path() -> PathBuf {
     let mut config_path = config_dir().unwrap();
-    config_path.push("dnac");
+    config_path.push("catsh");
     fs::create_dir_all(&config_path).unwrap();
     config_path.push("config.yml");
     config_path
@@ -33,7 +33,7 @@ pub fn get_config_path() -> PathBuf {
 
 pub fn get_credentials_db_path() -> PathBuf {
     let mut db_path = config_dir().unwrap();
-    db_path.push("dnac");
+    db_path.push("catsh");
     db_path.push("credentials.db");
     db_path
 }
