@@ -1,11 +1,13 @@
+use std::fs;
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use clap_repl::reedline::{
-    DefaultPrompt, DefaultPromptSegment, FileBackedHistory, Reedline, Signal,
+    DefaultPrompt, DefaultPromptSegment, FileBackedHistory,
 };
 use clap_repl::ClapEditor;
 use log::error;
+use dirs::home_dir;
 
 mod api {
     pub mod auth;
@@ -13,6 +15,7 @@ mod api {
 }
 mod config;
 mod utils;
+mod update;
 
 // Main CLI structure
 #[derive(Debug, Parser)]
@@ -28,11 +31,39 @@ enum CliCommand {
         #[arg(long)]
         reset: bool,
     },
+    Update,
     Exit,
+}
+
+fn get_installation_dir() -> PathBuf {
+    let home = home_dir().expect("Failed to determine the user's home directory");
+    home.join(".catsh")
+}
+
+fn perform_first_time_installation() -> Result<(), Box<dyn std::error::Error>> {
+    let install_dir = get_installation_dir();
+
+    if !install_dir.exists() {
+        println!("Running first-time installation...");
+        // Create installation directory and perform setup
+        fs::create_dir_all(&install_dir)?;
+        // Example: Write a version file
+        fs::write(install_dir.join("version"), "1.0.0")?;
+        println!("First-time installation complete.");
+    } 
+    
+
+    Ok(())
 }
 
 fn main() {
     env_logger::init();
+
+    // Perform first-time installation if necessary
+    if let Err(e) = perform_first_time_installation() {
+        eprintln!("Error during installation: {}", e);
+        return;
+    }
 
     let prompt = DefaultPrompt {
         left_prompt: DefaultPromptSegment::Basic("catsh".to_owned()),
@@ -56,6 +87,9 @@ fn main() {
             }
             CliCommand::Config { reset } => {
                 handle_config(reset);
+            }
+            CliCommand::Update => {
+                handle_update();
             }
             CliCommand::Exit => {
                 println!("Exiting catsh...");
@@ -105,4 +139,21 @@ fn handle_config(reset: bool) {
     } else {
         println!("No valid config subcommand provided. Use `--reset` to reset the configuration.");
     }
+}
+fn handle_update() {
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    {
+        if let Err(e) = update::update_to_latest() {
+            eprintln!("Update failed: {}", e);
+        } else {
+            println!("Update completed successfully.");
+        }
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        println!("Please download and run the latest `windows_installer.exe` to update the application.");
+    }
+
+    std::process::exit(0);
 }
