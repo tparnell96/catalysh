@@ -14,7 +14,7 @@ mod auth;
 mod config;
 mod utils;
 
-/// Main CLI structure
+// Main CLI structure
 #[derive(Debug, Parser)]
 #[command(name = "")] // Name is empty to avoid it showing in error messages
 enum CliCommand {
