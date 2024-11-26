@@ -1,6 +1,6 @@
 [package]
 name = "catsh"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 repository = "https://github.com/tparnell96/catsh"
 homepage = "https://github.com/tparnell96/catsh"

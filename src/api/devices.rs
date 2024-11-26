@@ -5,6 +5,7 @@ use reqwest::Client;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
+#[allow(non_snake_case)]
 pub struct Device {
     pub hostname: Option<String>,
     pub macAddress: Option<String>,
@@ -37,39 +38,11 @@ pub async fn get_all_devices(config: &Config, token: &Token) -> Result<Vec<Devic
             config.dnac_url, offset, limit
         );
 
-        let mut resp = client
-            .get(&devices_url)
-            .header("X-Auth-Token", &token.value)
-            .send()
-            .await?;
+        // Perform the API request with reauthentication handling
+        let devices_response: DevicesResponse =
+            send_authenticated_request(&client, config, token, &devices_url).await?;
 
-
-
-
-        if resp.status() == reqwest::StatusCode::UNAUTHORIZED {
-            // Token might be invalid; re-authenticate
-            eprintln!("Token expired or invalid. Re-authenticating...");
-
-            // Re-authenticate
-            let new_token = auth::authenticate(config).await?;
-
-            // Retry the request with the new token
-            resp = client
-                .get(&devices_url)
-                .header("X-Auth-Token", &new_token.value)
-                .send()
-                .await?;
-        }
-
-        if !resp.status().is_success() {
-            return Err(anyhow!(
-                "Failed to get devices: {}",
-                resp.status()
-            ));
-        }
-
-        let devices_resp: DevicesResponse = resp.json().await?;
-        let devices = devices_resp.response;
+        let devices = devices_response.response;
 
         if devices.is_empty() {
             // No more devices to fetch
@@ -83,4 +56,40 @@ pub async fn get_all_devices(config: &Config, token: &Token) -> Result<Vec<Devic
     }
 
     Ok(all_devices)
+}
+
+/// Sends an authenticated GET request, handling reauthentication if necessary.
+async fn send_authenticated_request<T: serde::de::DeserializeOwned>(
+    client: &Client,
+    config: &Config,
+    token: &Token,
+    url: &str,
+) -> Result<T> {
+    let mut current_token = token.clone();
+
+    loop {
+        let resp = client
+            .get(url)
+            .header("X-Auth-Token", &current_token.value)
+            .send()
+            .await?;
+
+        if resp.status() == reqwest::StatusCode::UNAUTHORIZED {
+            // Token expired or invalid, reauthenticate and retry
+            eprintln!("Token expired. Reauthenticating...");
+            current_token = auth::authenticate(config).await?;
+            continue; // Retry the request with the new token
+        }
+
+        if !resp.status().is_success() {
+            return Err(anyhow!(
+                "Failed to complete request: {}",
+                resp.status()
+            ));
+        }
+
+        // Deserialize and return the response
+        let result = resp.json::<T>().await?;
+        return Ok(result);
+    }
 }

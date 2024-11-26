@@ -38,6 +38,7 @@ pub fn get_credentials_db_path() -> PathBuf {
     db_path
 }
 
+/// Load configuration and trigger setup if necessary
 pub fn load_config() -> Result<Config> {
     let config_path = get_config_path();
     if config_path.exists() {
@@ -45,13 +46,14 @@ pub fn load_config() -> Result<Config> {
         let config: Config = serde_yaml::from_str(&contents)?;
         Ok(config)
     } else {
-        println!("Config file not found. Starting setup...");
+        println!("Configuration file not found. Starting setup...");
         let config = setup_config()?;
         save_config(&config)?;
         Ok(config)
     }
 }
 
+/// Reset the configuration and credentials
 pub fn reset_config() -> Result<()> {
     let config_path = get_config_path();
     let credentials_db_path = get_credentials_db_path();
@@ -64,16 +66,17 @@ pub fn reset_config() -> Result<()> {
         fs::remove_file(credentials_db_path)?;
     }
 
-    println!("Configuration files deleted.");
+    println!("Configuration files and credentials deleted.");
     Ok(())
 }
 
+/// Setup configuration by prompting the user
 fn setup_config() -> Result<Config> {
     let mut dnac_url = String::new();
     let mut username = String::new();
     let mut verify_ssl_input = String::new();
 
-    print!("Enter Cisco DNAC URL without a / at the end(e.g., https://dnac.example.com, https://192.168.1.20): ");
+    print!("Enter Cisco DNAC URL without a / at the end (e.g., https://dnac.example.com, https://192.168.1.20): ");
     io::stdout().flush()?;
     io::stdin().read_line(&mut dnac_url)?;
     dnac_url = dnac_url.trim().to_string();
@@ -88,9 +91,12 @@ fn setup_config() -> Result<Config> {
     io::stdin().read_line(&mut verify_ssl_input)?;
     let verify_ssl = verify_ssl_input.trim().to_lowercase() == "y";
 
+    println!("Configuration complete. Please proceed to store your credentials.");
+
     Ok(Config::new(dnac_url, username, verify_ssl))
 }
 
+/// Save the configuration to a file
 fn save_config(config: &Config) -> Result<()> {
     let config_path = get_config_path();
     let contents = serde_yaml::to_string(config)?;

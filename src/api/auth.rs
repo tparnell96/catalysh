@@ -1,7 +1,7 @@
 use crate::config::Config;
 use anyhow::{anyhow, Result};
 use argon2::{
-    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    password_hash::{PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
 use rand::rngs::OsRng;
@@ -15,16 +15,19 @@ use serde::Deserialize;
 use crate::utils;
 
 #[derive(Deserialize)]
+#[allow(non_snake_case)]
 struct TokenResponse {
     Token: String,
 }
 
 #[derive(Clone)]
+#[allow(non_snake_case)]
 pub struct Token {
     pub value: String,
     pub obtained_at: u64,
     pub expires_at: u64,
 }
+
 pub async fn authenticate(config: &Config) -> Result<Token> {
     // Check for existing token
     if let Some(token) = load_token()? {
@@ -36,8 +39,11 @@ pub async fn authenticate(config: &Config) -> Result<Token> {
 
     // Token is missing or expired; proceed to authenticate
     let credentials = load_credentials(&config.username)?;
+    let password = prompt_password(&config.username)?;
+    if !verify_password(&password, &credentials.password_hash)? {
+        return Err(anyhow!("Invalid password"));
+    }
 
-    // Automatically use the password stored in the database for re-authentication
     let client = Client::builder()
         .danger_accept_invalid_certs(!config.verify_ssl)
         .build()?;
@@ -46,7 +52,7 @@ pub async fn authenticate(config: &Config) -> Result<Token> {
 
     let resp = client
         .post(&auth_url)
-        .basic_auth(&config.username, Some(&credentials.password_hash)) // Use the stored password hash
+        .basic_auth(&config.username, Some(&password))
         .send()
         .await?;
 
@@ -94,7 +100,6 @@ fn load_credentials(username: &str) -> Result<StoredCredentials> {
 
     let conn = Connection::open(db_path)?;
 
-    // Ensure the credentials and token tables exist
     create_tables(&conn)?;
 
     let mut stmt = conn.prepare("SELECT password_hash FROM credentials WHERE username = ?1")?;
@@ -127,7 +132,6 @@ fn store_credentials(username: &str) -> Result<()> {
     fs::create_dir_all(db_path.parent().unwrap())?;
     let conn = Connection::open(db_path)?;
 
-    // Create the necessary tables
     create_tables(&conn)?;
 
     let salt = SaltString::generate(&mut OsRng);
@@ -162,7 +166,8 @@ fn prompt_new_password(username: &str) -> Result<String> {
 }
 
 fn verify_password(password: &str, password_hash: &str) -> Result<bool> {
-    let parsed_hash = PasswordHash::new(password_hash).map_err(|e| anyhow!(e))?;
+    let parsed_hash = argon2::password_hash::PasswordHash::new(password_hash)
+        .map_err(|e| anyhow!(e))?;
     let argon2 = Argon2::default();
     Ok(argon2
         .verify_password(password.as_bytes(), &parsed_hash)
@@ -174,7 +179,6 @@ fn store_token(token: &Token) -> Result<()> {
     let db_path = get_db_path();
     let conn = Connection::open(db_path)?;
 
-    // Create the necessary tables
     create_tables(&conn)?;
 
     conn.execute(
@@ -194,7 +198,6 @@ fn load_token() -> Result<Option<Token>> {
     let db_path = get_db_path();
     let conn = Connection::open(db_path)?;
 
-    // Create the necessary tables
     create_tables(&conn)?;
 
     let mut stmt = conn.prepare("SELECT value, obtained_at, expires_at FROM token LIMIT 1")?;
@@ -215,7 +218,6 @@ fn load_token() -> Result<Option<Token>> {
     }
 }
 
-// Helper function to create necessary tables
 fn create_tables(conn: &Connection) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS credentials (

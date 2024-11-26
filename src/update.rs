@@ -1,6 +1,5 @@
 use std::fs;
 use std::env;
-use std::process::Command;
 use reqwest;
 use serde_json::Value;
 #[cfg(unix)]

@@ -64,6 +64,7 @@ fn perform_first_time_installation() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[allow(non_snake_case)]
 fn main() {
     env_logger::init();
 
