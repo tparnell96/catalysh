@@ -10,7 +10,9 @@ mod config;
 mod utils;
 mod update;
 mod api {
-    pub mod auth;
+    pub mod authentication {
+        pub mod auth;
+    }
     pub mod devices {
         pub mod getdevicelist; 
     }
@@ -120,7 +122,7 @@ fn handle_devices(subcommand: DeviceSubcommands) {
             }
         };
 
-        let token = match api::auth::authenticate(&config).await {
+        let token = match api::authentication::auth::authenticate(&config).await {
             Ok(t) => t,
             Err(e) => {
                 error!("Authentication failed: {}", e);
