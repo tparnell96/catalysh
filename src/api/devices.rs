@@ -6,15 +6,53 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
+#[serde(rename_all = "camelCase")]
 pub struct Device {
+    pub reachability_failure_reason: Option<String>,
+    pub reachability_status: Option<String>,
+    pub series: Option<String>,
+    pub snmp_contact: Option<String>,
+    pub snmp_location: Option<String>,
+    pub tag_count: Option<String>,
+    pub tunnel_udp_port: Option<serde_json::Value>, // Use `serde_json::Value` for fields with undefined schema
+    pub uptime_seconds: Option<i64>, // Assuming "integer" corresponds to i64
+    pub waas_device_mode: Option<serde_json::Value>,
+    pub serial_number: Option<String>,
+    pub last_update_time: Option<i64>,
+    pub mac_address: Option<String>,
+    pub up_time: Option<String>,
+    pub device_support_level: Option<String>,
     pub hostname: Option<String>,
-    pub macAddress: Option<String>,
-    pub apEthernetMacAddress: Option<String>,
-    pub managementIpAddress: Option<String>,
-    pub serialNumber: Option<String>,
-    pub associatedWlcIp: Option<String>,
-    pub softwareVersion: Option<String>,
-    // Add more fields as needed
+    pub device_type: Option<String>, // Renamed "type" to "device_type" to avoid reserved keyword
+    pub memory_size: Option<String>,
+    pub family: Option<String>,
+    pub error_code: Option<String>,
+    pub software_type: Option<String>,
+    pub software_version: Option<String>,
+    pub description: Option<String>,
+    pub role_source: Option<String>,
+    pub location: Option<serde_json::Value>,
+    pub role: Option<String>,
+    pub collection_interval: Option<String>,
+    pub inventory_status_detail: Option<String>,
+    pub ap_ethernet_mac_address: Option<String>,
+    pub ap_manager_interface_ip: Option<String>,
+    pub associated_wlc_ip: Option<String>,
+    pub boot_date_time: Option<String>,
+    pub collection_status: Option<String>,
+    pub error_description: Option<String>,
+    pub interface_count: Option<String>,
+    pub last_updated: Option<String>,
+    pub line_card_count: Option<String>,
+    pub line_card_id: Option<String>,
+    pub location_name: Option<serde_json::Value>,
+    pub managed_atleast_once: Option<bool>,
+    pub management_ip_address: Option<String>,
+    pub platform_id: Option<String>,
+    pub management_state: Option<String>,
+    pub instance_tenant_id: Option<String>,
+    pub instance_uuid: Option<String>,
+    pub id: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

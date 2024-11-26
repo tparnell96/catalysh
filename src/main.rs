@@ -74,7 +74,7 @@ fn perform_first_time_installation() -> Result<(), Box<dyn std::error::Error>> {
 #[allow(non_snake_case)]
 fn main() {
     env_logger::init();
-
+    //Initial check to confirm program is correctly installed
     if let Err(e) = perform_first_time_installation() {
         eprintln!("Error during installation: {}", e);
         return;

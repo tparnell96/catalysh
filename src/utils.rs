@@ -21,14 +21,14 @@ pub fn print_devices(devices: Vec<Device>) {
     for device in devices {
         table.add_row(row![
             device.hostname.unwrap_or_else(|| "N/A".to_string()),
-            device.macAddress.unwrap_or_else(|| "N/A".to_string()),
-            device.apEthernetMacAddress.unwrap_or_else(|| "N/A".to_string()),
+            device.mac_address.unwrap_or_else(|| "N/A".to_string()),
+            device.ap_ethernet_mac_address.unwrap_or_else(|| "N/A".to_string()),
             device
-                .managementIpAddress
+                .management_ip_address
                 .unwrap_or_else(|| "N/A".to_string()),
-            device.serialNumber.unwrap_or_else(|| "N/A".to_string()),
-            device.associatedWlcIp.unwrap_or_else(|| "N/A".to_string()),
-            device.softwareVersion.unwrap_or_else(|| "N/A".to_string()),
+            device.serial_number.unwrap_or_else(|| "N/A".to_string()),
+            device.associated_wlc_ip.unwrap_or_else(|| "N/A".to_string()),
+            device.software_version.unwrap_or_else(|| "N/A".to_string()),
         ]);
     }
 
