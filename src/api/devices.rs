@@ -7,7 +7,8 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[serde(rename_all = "camelCase")]
-pub struct Device {
+#[allow(dead_code)]
+pub struct AllDevices {
     pub reachability_failure_reason: Option<String>,
     pub reachability_status: Option<String>,
     pub series: Option<String>,
@@ -57,16 +58,16 @@ pub struct Device {
 
 #[derive(Debug, Deserialize)]
 struct DevicesResponse {
-    response: Vec<Device>,
+    response: Vec<AllDevices>,
     // totalCount: Option<u32>, // Uncomment if needed
 }
 
-pub async fn get_all_devices(config: &Config, token: &Token) -> Result<Vec<Device>> {
+pub async fn get_all_devices(config: &Config, token: &Token) -> Result<Vec<AllDevices>> {
     let client = Client::builder()
         .danger_accept_invalid_certs(!config.verify_ssl)
         .build()?;
 
-    let mut all_devices: Vec<Device> = Vec::new();
+    let mut all_devices: Vec<AllDevices> = Vec::new();
     let mut offset = 1; // Adjust based on API documentation (could be 0)
     let limit = 500;    // Set the limit as per API maximum
 

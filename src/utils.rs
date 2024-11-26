@@ -1,4 +1,4 @@
-use crate::api::devices::Device;
+use crate::api::devices::AllDevices;
 use chrono::Utc;
 use prettytable::{row, Table};
 
@@ -6,7 +6,7 @@ pub fn current_timestamp() -> u64 {
     Utc::now().timestamp() as u64
 }
 
-pub fn print_devices(devices: Vec<Device>) {
+pub fn print_devices(devices: Vec<AllDevices>) {
     let mut table = Table::new();
     table.add_row(row![
         "Hostname",
