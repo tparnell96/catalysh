@@ -30,8 +30,8 @@ enum Commands {
         subcommand: DeviceSubcommands,
     },
     Config {
-        #[arg(long)]
-        reset: bool,
+        #[command(subcommand)]
+        subcommand: ConfigSubcommands,
     },
     Update,
     Exit,
@@ -45,6 +45,13 @@ enum DeviceSubcommands {
         #[arg(help = "Device ID or Name")]
         device_id: String,
     },
+}
+
+//Config-specific subcommands
+#[derive(Debug, Subcommand)]
+enum ConfigSubcommands {
+    ///Remove the program config and prompt the user on the next command run for an endpoint, SSL setting, username, and password
+    Reset, 
 }
 
 fn get_installation_dir() -> PathBuf {
@@ -91,7 +98,7 @@ fn main() {
     rl.repl(|cli| {
         match cli.command {
             Commands::Devices { subcommand } => handle_devices(subcommand),
-            Commands::Config { reset } => handle_config(reset),
+            Commands::Config { subcommand } => handle_config(subcommand),
             Commands::Update => handle_update(),
             Commands::Exit => {
                 println!("Exiting catsh...");
@@ -135,15 +142,15 @@ fn handle_devices(subcommand: DeviceSubcommands) {
     });
 }
 
-fn handle_config(reset: bool) {
-    if reset {
-        if let Err(e) = config::reset_config() {
-            error!("Failed to reset configuration: {}", e);
-        } else {
-            println!("Configuration reset successfully.");
+fn handle_config(subcommand: ConfigSubcommands) {
+    match subcommand {
+        ConfigSubcommands::Reset => {
+            if let Err(e) = config::reset_config() {
+                error!("Failed to reset configuration: {}", e);
+            } else {
+                println!("Configuration reset successfully.");
+            }
         }
-    } else {
-        println!("No valid config subcommand provided. Use `--reset` to reset the configuration.");
     }
 }
 
