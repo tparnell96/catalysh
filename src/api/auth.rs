@@ -25,7 +25,6 @@ pub struct Token {
     pub obtained_at: u64,
     pub expires_at: u64,
 }
-
 pub async fn authenticate(config: &Config) -> Result<Token> {
     // Check for existing token
     if let Some(token) = load_token()? {
@@ -37,11 +36,8 @@ pub async fn authenticate(config: &Config) -> Result<Token> {
 
     // Token is missing or expired; proceed to authenticate
     let credentials = load_credentials(&config.username)?;
-    let password = prompt_password(&config.username)?;
-    if !verify_password(&password, &credentials.password_hash)? {
-        return Err(anyhow!("Invalid password"));
-    }
 
+    // Automatically use the password stored in the database for re-authentication
     let client = Client::builder()
         .danger_accept_invalid_certs(!config.verify_ssl)
         .build()?;
@@ -50,7 +46,7 @@ pub async fn authenticate(config: &Config) -> Result<Token> {
 
     let resp = client
         .post(&auth_url)
-        .basic_auth(&config.username, Some(&password))
+        .basic_auth(&config.username, Some(&credentials.password_hash)) // Use the stored password hash
         .send()
         .await?;
 

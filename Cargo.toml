@@ -9,7 +9,8 @@ readme = "README.md"
 documentation = "https://github.com/tparnell96/catsh"
 keywords = ["networking", "cisco", "dnac", "catalyst", "cli"]
 categories = ["command-line-utilities"]
-exclude = ["/target", "Cargo.lock", ".github/workflows/rust.yml", ".cargo_vcs_info.json"]
+exclude = ["/target", "/Cargo.lock", "/.github/workflows/rust.yml"]
+
 [dependencies]
 clap-repl = "0.3.0"
 clap = { version = "4.0.32", features = ["derive"] }
@@ -28,6 +29,7 @@ rpassword = "7.0.0"
 prettytable = "0.10.0"
 chrono = "0.4.26"
 anyhow = "1.0.93"
+
 [[bin]]
 name = "windows_installer"
 path = "src/bin/windows_installer.rs"

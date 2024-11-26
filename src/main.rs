@@ -1,13 +1,10 @@
-use std::fs;
-use std::path::PathBuf;
-
-use clap::Parser;
-use clap_repl::reedline::{
-    DefaultPrompt, DefaultPromptSegment, FileBackedHistory,
-};
+use clap::{Parser, Subcommand};
+use clap_repl::reedline::{DefaultPrompt, DefaultPromptSegment, FileBackedHistory};
 use clap_repl::ClapEditor;
 use log::error;
 use dirs::home_dir;
+use std::fs;
+use std::path::PathBuf;
 
 mod api {
     pub mod auth;
@@ -17,22 +14,37 @@ mod config;
 mod utils;
 mod update;
 
-// Main CLI structure
+// Main command structure
 #[derive(Debug, Parser)]
-#[command(name = "")] // Name is empty to avoid it showing in error messages
-enum CliCommand {
+#[command(name = "catsh", about = "A REPL CLI for managing network devices")]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+// Commands structure with subcommands
+#[derive(Debug, Subcommand)]
+enum Commands {
     Devices {
-        /// Get all devices
-        #[arg(short, long)]
-        all: bool,
+        #[command(subcommand)]
+        subcommand: DeviceSubcommands,
     },
     Config {
-        /// Reset the configuration
         #[arg(long)]
         reset: bool,
     },
     Update,
     Exit,
+}
+
+// Device-specific subcommands
+#[derive(Debug, Subcommand)]
+enum DeviceSubcommands {
+    All,
+    Details {
+        #[arg(help = "Device ID or Name")]
+        device_id: String,
+    },
 }
 
 fn get_installation_dir() -> PathBuf {
@@ -45,21 +57,16 @@ fn perform_first_time_installation() -> Result<(), Box<dyn std::error::Error>> {
 
     if !install_dir.exists() {
         println!("Running first-time installation...");
-        // Create installation directory and perform setup
         fs::create_dir_all(&install_dir)?;
-        // Example: Write a version file
         fs::write(install_dir.join("version"), "1.0.0")?;
         println!("First-time installation complete.");
-    } 
-    
-
+    }
     Ok(())
 }
 
 fn main() {
     env_logger::init();
 
-    // Perform first-time installation if necessary
     if let Err(e) = perform_first_time_installation() {
         eprintln!("Error during installation: {}", e);
         return;
@@ -71,7 +78,7 @@ fn main() {
     };
 
     // Create the REPL
-    let rl = ClapEditor::<CliCommand>::builder()
+    let rl = ClapEditor::<Cli>::builder()
         .with_prompt(Box::new(prompt))
         .with_editor_hook(|reed| {
             reed.with_history(Box::new(
@@ -80,18 +87,12 @@ fn main() {
         })
         .build();
 
-    rl.repl(|command| {
-        match command {
-            CliCommand::Devices { all } => {
-                handle_inventory(all);
-            }
-            CliCommand::Config { reset } => {
-                handle_config(reset);
-            }
-            CliCommand::Update => {
-                handle_update();
-            }
-            CliCommand::Exit => {
+    rl.repl(|cli| {
+        match cli.command {
+            Commands::Devices { subcommand } => handle_devices(subcommand),
+            Commands::Config { reset } => handle_config(reset),
+            Commands::Update => handle_update(),
+            Commands::Exit => {
                 println!("Exiting catsh...");
                 std::process::exit(0);
             }
@@ -99,7 +100,7 @@ fn main() {
     });
 }
 
-fn handle_inventory(all: bool) {
+fn handle_devices(subcommand: DeviceSubcommands) {
     let runtime = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
     runtime.block_on(async {
         let config = match config::load_config() {
@@ -118,13 +119,17 @@ fn handle_inventory(all: bool) {
             }
         };
 
-        if all {
-            match api::devices::get_all_devices(&config, &token).await {
-                Ok(devices) => utils::print_devices(devices),
-                Err(e) => error!("Failed to retrieve devices: {}", e),
+        match subcommand {
+            DeviceSubcommands::All => {
+                match api::devices::get_all_devices(&config, &token).await {
+                    Ok(devices) => utils::print_devices(devices),
+                    Err(e) => error!("Failed to retrieve devices: {}", e),
+                }
             }
-        } else {
-            println!("Use the `--all` flag to retrieve all devices.");
+            DeviceSubcommands::Details { device_id } => {
+                println!("Retrieving details for device: {}", device_id);
+                // Add detailed device retrieval logic here
+            }
         }
     });
 }
@@ -140,6 +145,7 @@ fn handle_config(reset: bool) {
         println!("No valid config subcommand provided. Use `--reset` to reset the configuration.");
     }
 }
+
 fn handle_update() {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
@@ -154,6 +160,4 @@ fn handle_update() {
     {
         println!("Please download and run the latest `windows_installer.exe` to update the application.");
     }
-
-    std::process::exit(0);
 }
