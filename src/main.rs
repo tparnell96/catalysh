@@ -8,7 +8,9 @@ use std::path::PathBuf;
 
 mod api {
     pub mod auth;
-    pub mod devices;
+    pub mod devices {
+        pub mod getdevicelist; 
+    }
 }
 mod config;
 mod utils;
@@ -129,7 +131,7 @@ fn handle_devices(subcommand: DeviceSubcommands) {
 
         match subcommand {
             DeviceSubcommands::All => {
-                match api::devices::get_all_devices(&config, &token).await {
+                match api::devices::getdevicelist::get_all_devices(&config, &token).await {
                     Ok(devices) => utils::print_devices(devices),
                     Err(e) => error!("Failed to retrieve devices: {}", e),
                 }
