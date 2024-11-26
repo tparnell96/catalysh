@@ -1,11 +1,3 @@
-use clap::{Parser, Subcommand};
-use clap_repl::reedline::{DefaultPrompt, DefaultPromptSegment, FileBackedHistory};
-use clap_repl::ClapEditor;
-use log::error;
-use dirs::home_dir;
-use std::fs;
-use std::path::PathBuf;
-
 mod config;
 mod utils;
 mod update;
@@ -14,48 +6,18 @@ mod api {
         pub mod auth;
     }
     pub mod devices {
-        pub mod getdevicelist; 
+        pub mod getdevicelist;
     }
 }
-// Main command structure
-#[derive(Debug, Parser)]
-#[command(name = "catsh", about = "A REPL CLI for managing network devices")]
-struct Cli {
-    #[command(subcommand)]
-    command: Commands,
-}
+mod commands;
+mod handlers;
 
-// Commands structure with subcommands
-#[derive(Debug, Subcommand)]
-enum Commands {
-    Devices {
-        #[command(subcommand)]
-        subcommand: DeviceSubcommands,
-    },
-    Config {
-        #[command(subcommand)]
-        subcommand: ConfigSubcommands,
-    },
-    Update,
-    Exit,
-}
-
-// Device-specific subcommands
-#[derive(Debug, Subcommand)]
-enum DeviceSubcommands {
-    All,
-    Details {
-        #[arg(help = "Device ID or Name")]
-        device_id: String,
-    },
-}
-
-//Config-specific subcommands
-#[derive(Debug, Subcommand)]
-enum ConfigSubcommands {
-    ///Remove the program config and prompt the user on the next command run for an endpoint, SSL setting, username, and password
-    Reset, 
-}
+use commands::{Cli, route_command};
+use clap_repl::reedline::{DefaultPrompt, DefaultPromptSegment, FileBackedHistory};
+use clap_repl::ClapEditor;
+use dirs::home_dir;
+use std::fs;
+use std::path::PathBuf;
 
 fn get_installation_dir() -> PathBuf {
     let home = home_dir().expect("Failed to determine the user's home directory");
@@ -77,7 +39,7 @@ fn perform_first_time_installation() -> Result<(), Box<dyn std::error::Error>> {
 #[allow(non_snake_case)]
 fn main() {
     env_logger::init();
-    //Initial check to confirm program is correctly installed
+    // Initial check to confirm program is correctly installed
     if let Err(e) = perform_first_time_installation() {
         eprintln!("Error during installation: {}", e);
         return;
@@ -99,76 +61,6 @@ fn main() {
         .build();
 
     rl.repl(|cli| {
-        match cli.command {
-            Commands::Devices { subcommand } => handle_devices(subcommand),
-            Commands::Config { subcommand } => handle_config(subcommand),
-            Commands::Update => handle_update(),
-            Commands::Exit => {
-                println!("Exiting catsh...");
-                std::process::exit(0);
-            }
-        }
+        route_command(cli.command);
     });
-}
-
-fn handle_devices(subcommand: DeviceSubcommands) {
-    let runtime = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
-    runtime.block_on(async {
-        let config = match config::load_config() {
-            Ok(cfg) => cfg,
-            Err(e) => {
-                error!("Failed to load configuration: {}", e);
-                return;
-            }
-        };
-
-        let token = match api::authentication::auth::authenticate(&config).await {
-            Ok(t) => t,
-            Err(e) => {
-                error!("Authentication failed: {}", e);
-                return;
-            }
-        };
-
-        match subcommand {
-            DeviceSubcommands::All => {
-                match api::devices::getdevicelist::get_all_devices(&config, &token).await {
-                    Ok(devices) => utils::print_devices(devices),
-                    Err(e) => error!("Failed to retrieve devices: {}", e),
-                }
-            }
-            DeviceSubcommands::Details { device_id } => {
-                println!("Retrieving details for device: {}", device_id);
-                // Add detailed device retrieval logic here
-            }
-        }
-    });
-}
-
-fn handle_config(subcommand: ConfigSubcommands) {
-    match subcommand {
-        ConfigSubcommands::Reset => {
-            if let Err(e) = config::reset_config() {
-                error!("Failed to reset configuration: {}", e);
-            } else {
-                println!("Configuration reset successfully.");
-            }
-        }
-    }
-}
-
-fn handle_update() {
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
-    {
-        if let Err(e) = update::update_to_latest() {
-            eprintln!("Update failed: {}", e);
-        } else {
-            println!("Update completed successfully.");
-        }
-    }
-
-    #[cfg(target_os = "windows")]
-    {
-        println!("Please download and run the latest `windows_installer.exe` to update the application.");
-    }
 }
