@@ -6,16 +6,15 @@ use dirs::home_dir;
 use std::fs;
 use std::path::PathBuf;
 
+mod config;
+mod utils;
+mod update;
 mod api {
     pub mod auth;
     pub mod devices {
         pub mod getdevicelist; 
     }
 }
-mod config;
-mod utils;
-mod update;
-
 // Main command structure
 #[derive(Debug, Parser)]
 #[command(name = "catsh", about = "A REPL CLI for managing network devices")]
