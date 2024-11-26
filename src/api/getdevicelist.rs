@@ -59,7 +59,6 @@ pub struct AllDevices {
 #[derive(Debug, Deserialize)]
 struct DevicesResponse {
     response: Vec<AllDevices>,
-    // totalCount: Option<u32>, // Uncomment if needed
 }
 
 pub async fn get_all_devices(config: &Config, token: &Token) -> Result<Vec<AllDevices>> {
