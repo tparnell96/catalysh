@@ -14,7 +14,7 @@ pub enum DeviceCommands {
         #[command(subcommand)]
         filter: DeviceDetailFilter,
     },
-    /// Show device detail enrichment
+    /// Show device enrichment detail
     Enrichment {
         #[command(subcommand)]
         filter: DeviceEnrichmentFilter,
