@@ -1,14 +1,7 @@
-mod config;
-mod utils;
-mod update;
-mod api {
-    pub mod authentication {
-        pub mod auth;
-    }
-    pub mod devices {
-        pub mod getdevicelist;
-    }
-}
+mod app;
+mod helpers;
+mod api;
+
 mod commands;
 mod handlers;
 
@@ -64,3 +57,4 @@ fn main() {
         route_command(cli.command);
     });
 }
+

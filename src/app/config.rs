@@ -1,4 +1,4 @@
-use anyhow::{Result};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::{self, Write};
@@ -103,3 +103,4 @@ fn save_config(config: &Config) -> Result<()> {
     fs::write(config_path, contents)?;
     Ok(())
 }
+

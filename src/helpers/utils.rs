@@ -34,3 +34,4 @@ pub fn print_devices(devices: Vec<AllDevices>) {
 
     table.printstd();
 }
+

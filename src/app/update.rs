@@ -66,3 +66,4 @@ pub fn update_to_latest() -> Result<(), Box<dyn std::error::Error>> {
     println!("Update successfully applied to ~/.local/bin/catsh.");
     Ok(())
 }
+

@@ -1,4 +1,5 @@
-use crate::config::Config;
+use crate::app::config::Config;
+use crate::helpers::utils;
 use anyhow::{anyhow, Result};
 use argon2::{
     password_hash::{PasswordHasher, PasswordVerifier, SaltString},
@@ -11,8 +12,6 @@ use std::path::PathBuf;
 
 use reqwest::Client;
 use serde::Deserialize;
-
-use crate::utils;
 
 #[derive(Deserialize)]
 #[allow(non_snake_case)]
@@ -27,6 +26,8 @@ pub struct Token {
     pub obtained_at: u64,
     pub expires_at: u64,
 }
+
+
 
 pub async fn authenticate(config: &Config) -> Result<Token> {
     // Check for existing token
