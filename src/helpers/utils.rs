@@ -1,12 +1,13 @@
 // src/helpers/utils.rs
 
+#[allow(unused_imports)]
 use crate::api::clients::getclientdetail::{
     ClientDetailResponse, HealthScore, ConnectedDevice, Onboarding, ConnectionInfo,
     Topology, TopologyNode, TopologyLink,
 };
 use crate::api::devices::getdevicelist::AllDevices;
 use crate::api::devices::devicedetailenrichment::DeviceDetails;
-use chrono::{NaiveDateTime, Utc};
+use chrono::{DateTime, Utc};
 use prettytable::{row, Table};
 
 pub fn current_timestamp() -> u64 {
@@ -60,8 +61,8 @@ pub fn print_device_detail(device: AllDevices) {
     add_field(&mut table, "Reachability Status", device.reachability_status);
     add_field(&mut table, "Uptime", device.up_time);
     add_field(&mut table, "Last Updated", device.last_update_time.map(|timestamp| {
-        let datetime = NaiveDateTime::from_timestamp_millis(timestamp as i64)
-            .unwrap_or_else(|| NaiveDateTime::from_timestamp(0, 0));
+        let datetime = DateTime::from_timestamp_millis(timestamp as i64)
+            .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
         datetime.format("%Y-%m-%d %H:%M:%S").to_string()
     }));
     // Add more fields as necessary
@@ -129,8 +130,8 @@ pub fn print_client_detail(response: ClientDetailResponse) {
 
         // lastUpdated as timestamp
         if let Some(timestamp) = detail.lastUpdated {
-            let datetime = NaiveDateTime::from_timestamp_millis(timestamp as i64)
-                .unwrap_or_else(|| NaiveDateTime::from_timestamp(0, 0));
+            let datetime = DateTime::from_timestamp_millis(timestamp as i64)
+                .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
             add_field(
                 &mut table,
                 "Last Updated",
@@ -211,8 +212,8 @@ pub fn print_client_detail(response: ClientDetailResponse) {
         if let Some(onboarding) = detail.onboarding {
             // Timestamps
             if let Some(timestamp) = onboarding.authDoneTime {
-                let datetime = NaiveDateTime::from_timestamp_millis(timestamp as i64)
-                    .unwrap_or_else(|| NaiveDateTime::from_timestamp(0, 0));
+                let datetime = DateTime::from_timestamp_millis(timestamp as i64)
+                    .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
                 add_field(
                     &mut table,
                     "Onboarding - Auth Done Time",
@@ -223,8 +224,8 @@ pub fn print_client_detail(response: ClientDetailResponse) {
             }
 
             if let Some(timestamp) = onboarding.assocDoneTime {
-                let datetime = NaiveDateTime::from_timestamp_millis(timestamp as i64)
-                    .unwrap_or_else(|| NaiveDateTime::from_timestamp(0, 0));
+                let datetime = DateTime::from_timestamp_millis(timestamp as i64)
+                    .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
                 add_field(
                     &mut table,
                     "Onboarding - Assoc Done Time",
@@ -235,8 +236,8 @@ pub fn print_client_detail(response: ClientDetailResponse) {
             }
 
             if let Some(timestamp) = onboarding.dhcpDoneTime {
-                let datetime = NaiveDateTime::from_timestamp_millis(timestamp as i64)
-                    .unwrap_or_else(|| NaiveDateTime::from_timestamp(0, 0));
+                let datetime = DateTime::from_timestamp_millis(timestamp as i64)
+                    .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
                 add_field(
                     &mut table,
                     "Onboarding - DHCP Done Time",
@@ -323,8 +324,8 @@ pub fn print_client_detail(response: ClientDetailResponse) {
 
         // Timestamp
         if let Some(timestamp) = connection_info.timestamp {
-            let datetime = NaiveDateTime::from_timestamp_millis(timestamp as i64)
-                .unwrap_or_else(|| NaiveDateTime::from_timestamp(0, 0));
+            let datetime = DateTime::from_timestamp_millis(timestamp as i64)
+                .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
             add_field(
                 &mut table,
                 "Timestamp",
