@@ -16,6 +16,7 @@ pub enum ShowCommands {
         #[command(subcommand)]
         subcommand: client::ClientCommands,
     },
+    /// Show issues in Catalyst Center
     Issue {
         #[command(subcommand)]
         subcommand: issue::IssueCommands,
