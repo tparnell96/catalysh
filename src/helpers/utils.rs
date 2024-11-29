@@ -7,6 +7,7 @@ use crate::api::clients::getclientdetail::{
 };
 use crate::api::devices::getdevicelist::AllDevices;
 use crate::api::devices::devicedetailenrichment::DeviceDetails;
+use crate::api::issues::getissuelist::{IssueListResponse, Issue};
 use chrono::{DateTime, Utc};
 use prettytable::{row, Table};
 
@@ -404,4 +405,45 @@ fn add_field(table: &mut Table, field_name: &str, value: Option<String>) {
         field_name,
         value.unwrap_or_else(|| "N/A".to_string())
     ]);
+}
+
+pub fn print_issue_list(response: IssueListResponse) {
+    if let Some(issues) = response.response {
+        let mut table = Table::new();
+        table.add_row(row![
+            "Issue ID",
+            "Name",
+            "Device ID",
+            "Device Role",
+            "Client MAC",
+            "Status",
+            "Priority",
+            "Category",
+            "Last Occurrence Time"
+        ]);
+
+        for issue in issues {
+            let last_occurrence = issue.last_occurence_time.map_or("N/A".to_string(), |timestamp| {
+                DateTime::from_timestamp_millis(timestamp)
+                    .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string())
+                    .unwrap_or_else(|| "Invalid Timestamp".to_string())
+            });
+
+            table.add_row(row![
+                issue.issueId.clone().unwrap_or_else(|| "N/A".to_string()),
+                issue.name.clone().unwrap_or_else(|| "N/A".to_string()),
+                issue.deviceId.clone().unwrap_or_else(|| "N/A".to_string()),
+                issue.deviceRole.clone().unwrap_or_else(|| "N/A".to_string()),
+                issue.clientMac.clone().unwrap_or_else(|| "N/A".to_string()),
+                issue.status.clone().unwrap_or_else(|| "N/A".to_string()),
+                issue.priority.clone().unwrap_or_else(|| "N/A".to_string()),
+                issue.category.clone().unwrap_or_else(|| "N/A".to_string()),
+                last_occurrence,
+            ]);
+        }
+
+        table.printstd();
+    } else {
+        println!("No issues found.");
+    }
 }

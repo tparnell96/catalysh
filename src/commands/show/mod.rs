@@ -1,5 +1,6 @@
 pub mod device;
 pub mod client;
+pub mod issue;
 
 use clap::Subcommand;
 
@@ -14,6 +15,10 @@ pub enum ShowCommands {
     Client {
         #[command(subcommand)]
         subcommand: client::ClientCommands,
+    },
+    Issue {
+        #[command(subcommand)]
+        subcommand: issue::IssueCommands,
     },
 }
 
