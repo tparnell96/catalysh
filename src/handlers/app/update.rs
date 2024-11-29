@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use crate::app::update; // Corrected import
 
 pub fn handle_update_command() {

@@ -7,6 +7,7 @@ use crate::api::clients::getclientdetail::{
 };
 use crate::api::devices::getdevicelist::AllDevices;
 use crate::api::devices::devicedetailenrichment::DeviceDetails;
+#[allow(unused_imports)]
 use crate::api::issues::getissuelist::{IssueListResponse, Issue};
 use chrono::{DateTime, Utc};
 use prettytable::{row, Table};

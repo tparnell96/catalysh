@@ -1,8 +1,10 @@
 // src/commands/show/issue.rs
 
+#[allow(unused_imports)]
 use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Debug, Subcommand)]
+#[allow(unused_imports)]
 pub enum IssueCommands {
     /// List issues based on search criteria
     List {
@@ -15,6 +17,7 @@ pub enum IssueCommands {
 }
 
 #[derive(Debug, Clone, ValueEnum)]
+#[allow(dead_code)]
 pub enum SearchOption {
     /// Start time to search from when looking for issues
     StartTime,

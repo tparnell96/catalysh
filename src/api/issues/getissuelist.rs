@@ -9,6 +9,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
+#[allow(dead_code)]
 pub struct IssueListResponse {
     pub version: Option<String>,
     pub totalCount: Option<String>,
@@ -17,6 +18,7 @@ pub struct IssueListResponse {
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
+#[allow(dead_code)]
 pub struct Issue {
     pub issueId: Option<String>,
     pub name: Option<String>,
