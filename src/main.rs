@@ -14,7 +14,7 @@ use std::path::PathBuf;
 
 fn get_installation_dir() -> PathBuf {
     let home = home_dir().expect("Failed to determine the user's home directory");
-    home.join(".catsh")
+    home.join(".catalysh")
 }
 
 fn perform_first_time_installation() -> Result<(), Box<dyn std::error::Error>> {
@@ -39,7 +39,7 @@ fn main() {
     }
 
     let prompt = DefaultPrompt {
-        left_prompt: DefaultPromptSegment::Basic("catsh".to_owned()),
+        left_prompt: DefaultPromptSegment::Basic("catalysh".to_owned()),
         ..DefaultPrompt::default()
     };
 
