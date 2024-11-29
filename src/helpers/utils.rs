@@ -24,6 +24,7 @@ pub fn print_devices(devices: Vec<AllDevices>) {
         "Management IP",
         "Serial Number",
         "MAC Address",
+        "Ethernet MAC Address",
         "Platform ID",
         "Software Version",
         "Role"
@@ -35,6 +36,7 @@ pub fn print_devices(devices: Vec<AllDevices>) {
             device.management_ip_address.unwrap_or_else(|| "N/A".to_string()),
             device.serial_number.unwrap_or_else(|| "N/A".to_string()),
             device.mac_address.unwrap_or_else(|| "N/A".to_string()),
+            device.ap_ethernet_mac_address.unwrap_or_else(|| "N/A".to_string()),
             device.platform_id.unwrap_or_else(|| "N/A".to_string()),
             device.software_version.unwrap_or_else(|| "N/A".to_string()),
             device.role.unwrap_or_else(|| "N/A".to_string()),
