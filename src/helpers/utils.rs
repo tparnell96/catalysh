@@ -7,6 +7,7 @@ use crate::api::clients::getclientdetail::{
 };
 use crate::api::devices::getdevicelist::AllDevices;
 use crate::api::devices::devicedetailenrichment::DeviceDetails;
+use crate::api::wireless::accesspointconfig::ApConfig;
 #[allow(unused_imports)]
 use crate::api::issues::getissuelist::{IssueListResponse, Issue};
 use chrono::{DateTime, Utc};
@@ -450,3 +451,192 @@ pub fn print_issue_list(response: IssueListResponse) {
         println!("No issues found.");
     }
 }
+
+// Function to print AP configuration
+pub fn print_ap_config(ap_config: ApConfig) {
+    let mut table = Table::new();
+    table.add_row(row!["Field", "Value"]);
+
+    add_field(&mut table, "Instance UUID", ap_config.instanceUuid.map(|v| v.to_string()));
+    add_field(&mut table, "Instance ID", ap_config.instanceId.map(|v| v.to_string()));
+    add_field(&mut table, "Display Name", ap_config.displayName);
+    add_field(&mut table, "Instance Tenant ID", ap_config.instanceTenantId);
+    add_field(
+        &mut table,
+        "Ordered List OE Index",
+        ap_config._orderedListOEIndex.map(|v| v.to_string()),
+    );
+    add_field(
+        &mut table,
+        "Creation Order Index",
+        ap_config._creationOrderIndex.map(|v| v.to_string()),
+    );
+    add_field(
+        &mut table,
+        "Is Being Changed",
+        ap_config._isBeingChanged.map(|v| v.to_string()),
+    );
+    add_field(&mut table, "Deploy Pending", ap_config.deployPending);
+    add_field(&mut table, "Instance Version", ap_config.instanceVersion.map(|v| v.to_string()));
+    add_field(&mut table, "Admin Status", ap_config.adminStatus);
+    add_field(&mut table, "AP Height", ap_config.apHeight.map(|v| v.to_string()));
+    add_field(&mut table, "AP Mode", ap_config.apMode);
+    add_field(&mut table, "AP Name", ap_config.apName);
+    add_field(&mut table, "Ethernet MAC", ap_config.ethMac);
+    add_field(&mut table, "Failover Priority", ap_config.failoverPriority);
+    add_field(
+        &mut table,
+        "LED Brightness Level",
+        ap_config.ledBrightnessLevel.map(|v| v.to_string()),
+    );
+    add_field(&mut table, "LED Status", ap_config.ledStatus);
+    add_field(&mut table, "Location", ap_config.location);
+    add_field(&mut table, "MAC Address", ap_config.macAddress);
+    add_field(&mut table, "Primary Controller Name", ap_config.primaryControllerName);
+    add_field(&mut table, "Primary IP Address", ap_config.primaryIpAddress);
+    add_field(&mut table, "Secondary Controller Name", ap_config.secondaryControllerName);
+    add_field(&mut table, "Secondary IP Address", ap_config.secondaryIpAddress);
+    add_field(&mut table, "Tertiary Controller Name", ap_config.tertiaryControllerName);
+    add_field(&mut table, "Tertiary IP Address", ap_config.tertiaryIpAddress);
+
+    // Internal Key
+    if let Some(internal_key) = ap_config.internalKey {
+        add_field(&mut table, "Internal Key - Type", internal_key.type_field);
+        add_field(&mut table, "Internal Key - ID", internal_key.id.map(|v| v.to_string()));
+        add_field(&mut table, "Internal Key - Long Type", internal_key.longType);
+        add_field(&mut table, "Internal Key - URL", internal_key.url);
+    }
+
+    // Display the table
+    table.printstd();
+
+    // Mesh DTOs - Since the schema shows as an array of empty objects, we can skip or handle as needed.
+
+    // Radio DTOs
+    if let Some(radio_dtos) = ap_config.radioDTOs {
+        for (i, radio) in radio_dtos.iter().enumerate() {
+            println!("\nRadio DTO [{}]:", i + 1);
+            let mut radio_table = Table::new();
+            radio_table.add_row(row!["Field", "Value"]);
+
+            add_field(&mut radio_table, "Display Name", radio.displayName.clone());
+            add_field(&mut radio_table, "Instance ID", radio.instanceId.map(|v| v.to_string()));
+            add_field(
+                &mut radio_table,
+                "Ordered List OE Index",
+                radio._orderedListOEIndex.map(|v| v.to_string()),
+            );
+            add_field(
+                &mut radio_table,
+                "Creation Order Index",
+                radio._creationOrderIndex.map(|v| v.to_string()),
+            );
+            add_field(
+                &mut radio_table,
+                "Is Being Changed",
+                radio._isBeingChanged.map(|v| v.to_string()),
+            );
+            add_field(&mut radio_table, "Deploy Pending", radio.deployPending.clone());
+            add_field(
+                &mut radio_table,
+                "Instance Version",
+                radio.instanceVersion.map(|v| v.to_string()),
+            );
+            add_field(&mut radio_table, "Admin Status", radio.adminStatus.clone());
+            add_field(
+                &mut radio_table,
+                "Antenna Angle",
+                radio.antennaAngle.map(|v| v.to_string()),
+            );
+            add_field(
+                &mut radio_table,
+                "Antenna Elevation Angle",
+                radio.antennaElevAngle.map(|v| v.to_string()),
+            );
+            add_field(
+                &mut radio_table,
+                "Antenna Gain",
+                radio.antennaGain.map(|v| v.to_string()),
+            );
+            add_field(
+                &mut radio_table,
+                "Antenna Pattern Name",
+                radio.antennaPatternName.clone(),
+            );
+            add_field(
+                &mut radio_table,
+                "Channel Assignment Mode",
+                radio.channelAssignmentMode.clone(),
+            );
+            add_field(
+                &mut radio_table,
+                "Channel Number",
+                radio.channelNumber.map(|v| v.to_string()),
+            );
+            add_field(
+                &mut radio_table,
+                "Channel Width",
+                radio.channelWidth.clone(),
+            );
+            add_field(&mut radio_table, "Clean Air SI", radio.cleanAirSI.clone());
+            add_field(&mut radio_table, "Interface Type", radio.ifType.map(|v| v.to_string()));
+            add_field(
+                &mut radio_table,
+                "Interface Type Value",
+                radio.ifTypeValue.clone(),
+            );
+            add_field(&mut radio_table, "MAC Address", radio.macAddress.clone());
+            add_field(
+                &mut radio_table,
+                "Power Assignment Mode",
+                radio.powerAssignmentMode.clone(),
+            );
+            add_field(
+                &mut radio_table,
+                "Power Level",
+                radio.powerlevel.map(|v| v.to_string()),
+            );
+            // radioBand and radioRoleAssignment are Option<serde_json::Value>; handle accordingly
+            add_field(
+                &mut radio_table,
+                "Radio Band",
+                radio.radioBand.as_ref().map(|v| v.to_string()),
+            );
+            add_field(
+                &mut radio_table,
+                "Radio Role Assignment",
+                radio.radioRoleAssignment.as_ref().map(|v| v.to_string()),
+            );
+            add_field(&mut radio_table, "Slot ID", radio.slotId.map(|v| v.to_string()));
+
+            // Internal Key for RadioDTO
+            if let Some(radio_internal_key) = &radio.internalKey {
+                add_field(
+                    &mut radio_table,
+                    "Internal Key - Type",
+                    radio_internal_key.type_field.clone(),
+                );
+                add_field(
+                    &mut radio_table,
+                    "Internal Key - ID",
+                    radio_internal_key.id.map(|v| v.to_string()),
+                );
+                add_field(
+                    &mut radio_table,
+                    "Internal Key - Long Type",
+                    radio_internal_key.longType.clone(),
+                );
+                add_field(
+                    &mut radio_table,
+                    "Internal Key - URL",
+                    radio_internal_key.url.clone(),
+                );
+            }
+
+            // Display the radio table
+            radio_table.printstd();
+        }
+    }
+}
+
+

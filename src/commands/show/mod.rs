@@ -1,6 +1,7 @@
 pub mod device;
 pub mod client;
 pub mod issue;
+pub mod ap;
 
 use clap::Subcommand;
 
@@ -20,6 +21,11 @@ pub enum ShowCommands {
     Issue {
         #[command(subcommand)]
         subcommand: issue::IssueCommands,
+    },
+    /// Show Access Point information
+    Ap {
+        #[command(subcommand)]
+        subcommand: ap::ApCommands,
     },
 }
 
