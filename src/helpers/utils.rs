@@ -2,6 +2,7 @@
 
 use crate::api::devices::devicedetailenrichment::DeviceDetails;
 use crate::api::devices::getdevicelist::AllDevices;
+use crate::api::clients::getclientdetail::ClientDetailResponse;
 use chrono::Utc;
 use prettytable::{row, Table};
 
@@ -154,4 +155,45 @@ pub fn print_device_enrichment(device_details: DeviceDetails) {
     // Add more fields as needed
 
     table.printstd();
+}
+
+pub fn print_client_detail(response: ClientDetailResponse) {
+    if let Some(detail) = response.detail {
+        let mut table = Table::new();
+        table.add_row(row!["Field", "Value"]);
+
+        table.add_row(row![
+            "ID",
+            detail.id.unwrap_or_else(|| "N/A".to_string())
+        ]);
+        table.add_row(row![
+            "Connection Status",
+            detail.connectionStatus.unwrap_or_else(|| "N/A".to_string())
+        ]);
+        table.add_row(row![
+            "Host Type",
+            detail.hostType.unwrap_or_else(|| "N/A".to_string())
+        ]);
+        table.add_row(row![
+            "User ID",
+            detail.userId.unwrap_or_else(|| "N/A".to_string())
+        ]);
+        table.add_row(row![
+            "Host Name",
+            detail.hostName.unwrap_or_else(|| "N/A".to_string())
+        ]);
+        table.add_row(row![
+            "MAC Address",
+            detail.hostMac.unwrap_or_else(|| "N/A".to_string())
+        ]);
+        table.add_row(row![
+            "IPv4 Address",
+            detail.hostIpV4.unwrap_or_else(|| "N/A".to_string())
+        ]);
+        // Add more fields as needed
+
+        table.printstd();
+    } else {
+        println!("No client details available.");
+    }
 }
