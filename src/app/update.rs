@@ -6,7 +6,7 @@ use serde_json::Value;
 use std::os::unix::fs::PermissionsExt; // Import PermissionsExt for Unix systems
 
 pub fn update_to_latest() -> Result<(), Box<dyn std::error::Error>> {
-    let repo_url = "https://api.github.com/repos/tparnell96/catsh/releases/latest";
+    let repo_url = "https://api.github.com/repos/tparnell96/catalysh/releases/latest";
     let client = reqwest::blocking::Client::new();
     let response = client.get(repo_url).header("User-Agent", "Rust-App").send()?;
 
@@ -52,7 +52,7 @@ pub fn update_to_latest() -> Result<(), Box<dyn std::error::Error>> {
         fs::create_dir_all(&local_bin)?;
     }
 
-    let destination = local_bin.join("catsh");
+    let destination = local_bin.join("catalysh");
 
     println!("Moving binary to ~/.local/bin...");
     fs::copy(&temp_file, &destination)?;
@@ -63,7 +63,7 @@ pub fn update_to_latest() -> Result<(), Box<dyn std::error::Error>> {
         fs::set_permissions(&destination, fs::Permissions::from_mode(0o755))?;
     }
 
-    println!("Update successfully applied to ~/.local/bin/catsh.");
+    println!("Update successfully applied to ~/.local/bin/catalysh.");
     Ok(())
 }
 
