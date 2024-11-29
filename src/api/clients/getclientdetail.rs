@@ -24,19 +24,16 @@ pub struct ClientDetail {
     pub hostName: Option<String>,
     pub hostMac: Option<String>,
     pub hostIpV4: Option<String>,
-    // Add other fields as needed based on the schema
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 pub struct ConnectionInfo {
-    // Define fields as per the schema
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 pub struct Topology {
-    // Define fields as per the schema
 }
 
 pub async fn get_client_detail(
