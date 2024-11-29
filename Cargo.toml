@@ -1,12 +1,12 @@
 [package]
-name = "catsh"
+name = "catalysh"
 version = "0.0.2"
 edition = "2021"
-repository = "https://github.com/tparnell96/catsh"
-homepage = "https://github.com/tparnell96/catsh"
+repository = "https://github.com/tparnell96/catalysh"
+homepage = "https://github.com/tparnell96/catalysh"
 license-file = "LICENSE"
 readme = "README.md"
-documentation = "https://github.com/tparnell96/catsh"
+documentation = "https://github.com/tparnell96/catalysh"
 keywords = ["networking", "cisco", "dnac", "catalyst", "cli"]
 categories = ["command-line-utilities"]
 exclude = ["/target", "/Cargo.lock", "/.github/workflows/rust.yml"]
