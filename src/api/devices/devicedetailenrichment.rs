@@ -8,12 +8,14 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
+#[allow(dead_code)]
 pub struct DeviceEnrichmentResponse {
     pub deviceDetails: DeviceDetails,
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
+#[allow(dead_code)]
 pub struct DeviceDetails {
     pub family: Option<String>,
     #[serde(rename = "type")]
@@ -58,6 +60,7 @@ pub struct DeviceDetails {
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
+#[allow(dead_code)]
 pub struct NeighborTopology {
     pub nodes: Option<Vec<TopologyNode>>,
     pub links: Option<Vec<TopologyLink>>,
@@ -65,6 +68,7 @@ pub struct NeighborTopology {
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
+#[allow(dead_code)]
 pub struct TopologyNode {
     pub role: Option<String>,
     pub name: Option<String>,
@@ -88,6 +92,7 @@ pub struct TopologyNode {
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
+#[allow(dead_code)]
 pub struct TopologyLink {
     pub source: Option<String>,
     pub linkStatus: Option<String>,
