@@ -14,3 +14,22 @@ cargo run
 ```
 
 
+# Using catalysh
+
+To get a list of available commands from any point
+
+```
+
+-help
+
+```
+
+As an example you could run 
+
+```
+
+show device -help
+
+```
+
+You can also press Tab to auto-complete a command, or get a list of available commands in the next sequence
