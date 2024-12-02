@@ -1,15 +1,42 @@
 // src/helpers/utils.rs
-
 #[allow(unused_imports)]
 use crate::api::clients::getclientdetail::{
-    ClientDetailResponse, HealthScore, ConnectedDevice, Onboarding, ConnectionInfo,
-    Topology, TopologyNode, TopologyLink,
+    ClientDetailResponse,
+    HealthScore as ClientDetailHealthScore,
+    ConnectedDevice as ClientDetailConnectedDevice,
+    Onboarding,
+    ConnectionInfo,
+    Topology,
+    TopologyNode as ClientDetailTopologyNode,
+    TopologyLink as ClientDetailTopologyLink,
 };
+#[allow(unused_imports)]
+use crate::api::clients::getclientenrichment::{
+    ClientEnrichmentResponse,
+    ClientEnrichment,
+    UserDetails,
+    HealthScore as ClientEnrichmentHealthScore,
+    ConnectedDevice as ClientEnrichmentConnectedDevice,
+    DeviceDetails as ClientEnrichmentDeviceDetails,
+    NeighborTopology,
+    TopologyNode as ClientEnrichmentTopologyNode,
+    TopologyLink as ClientEnrichmentTopologyLink,
+    IssueDetails,
+    Issue as ClientEnrichmentIssue,
+    SuggestedAction,
+    ImpactedHost,
+    ImpactedHostLocation,
+};
+
+#[allow(unused_imports)]
+use crate::api::devices::devicedetailenrichment::DeviceDetails as DeviceDetailEnrichmentDeviceDetails;
 use crate::api::devices::getdevicelist::AllDevices;
+
+#[allow(unused_imports)]
+use crate::api::issues::getissuelist::{IssueListResponse, Issue as IssueListIssue};
 use crate::api::devices::devicedetailenrichment::DeviceDetails;
 use crate::api::wireless::accesspointconfig::ApConfig;
-#[allow(unused_imports)]
-use crate::api::issues::getissuelist::{IssueListResponse, Issue};
+
 use chrono::{DateTime, Utc};
 use prettytable::{row, Table};
 
@@ -640,3 +667,231 @@ pub fn print_ap_config(ap_config: ApConfig) {
 }
 
 
+
+pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
+    println!("Number of enrichment records: {}", response.0.len());
+    for enrichment in response.0 {
+        // User Details
+        if let Some(user_details) = enrichment.userDetails {
+            println!("User Details:");
+            let mut table = Table::new();
+            table.add_row(row!["Field", "Value"]);
+
+            add_field(&mut table, "ID", user_details.id);
+            add_field(&mut table, "Connection Status", user_details.connectionStatus);
+            add_field(&mut table, "Host Type", user_details.hostType);
+            add_field(&mut table, "User ID", user_details.userId);
+            add_field(&mut table, "Host Name", user_details.hostName);
+            add_field(&mut table, "Host OS", user_details.hostOs);
+            add_field(&mut table, "Host Version", user_details.hostVersion);
+            add_field(&mut table, "Sub Type", user_details.subType);
+
+            if let Some(timestamp) = user_details.lastUpdated {
+                let datetime = DateTime::from_timestamp_millis(timestamp)
+                    .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
+                add_field(
+                    &mut table,
+                    "Last Updated",
+                    Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
+                );
+            } else {
+                add_field(&mut table, "Last Updated", None);
+            }
+
+            // Health Scores
+            if let Some(health_scores) = user_details.healthScore {
+                for (i, hs) in health_scores.iter().enumerate() {
+                    let prefix = format!("Health Score [{}]", i + 1);
+                    add_field(&mut table, &format!("{} - Health Type", prefix), hs.healthType.clone());
+                    add_field(&mut table, &format!("{} - Reason", prefix), hs.reason.clone());
+                    add_field(
+                        &mut table,
+                        &format!("{} - Score", prefix),
+                        hs.score.map(|s| s.to_string()),
+                    );
+                }
+            }
+
+            add_field(&mut table, "Host MAC", user_details.hostMac);
+            add_field(&mut table, "Host IPv4", user_details.hostIpV4);
+            add_field(
+                &mut table,
+                "Host IPv6",
+                user_details.hostIpV6.map(|ips| ips.join(", ")),
+            );
+            add_field(&mut table, "Auth Type", user_details.authType);
+            add_field(&mut table, "VLAN ID", user_details.vlanId);
+            add_field(&mut table, "SSID", user_details.ssid);
+            add_field(&mut table, "Location", user_details.location);
+            add_field(&mut table, "Client Connection", user_details.clientConnection);
+            add_field(
+                &mut table,
+                "Issue Count",
+                user_details.issueCount.map(|v| v.to_string()),
+            );
+            add_field(&mut table, "RSSI", user_details.rssi);
+            add_field(&mut table, "SNR", user_details.snr);
+            add_field(&mut table, "Data Rate", user_details.dataRate);
+            add_field(&mut table, "Port", user_details.port);
+
+            table.printstd();
+        }
+
+        // Connected Devices
+        if let Some(connected_devices) = enrichment.connectedDevice {
+            for (i, conn_dev) in connected_devices.iter().enumerate() {
+                if let Some(device_details) = &conn_dev.deviceDetails {
+                    println!("\nConnected Device [{}]:", i + 1);
+                    let mut table = Table::new();
+                    table.add_row(row!["Field", "Value"]);
+
+                    add_field(&mut table, "Family", device_details.family.clone());
+                    add_field(&mut table, "Type", device_details.type_field.clone());
+                    add_field(&mut table, "Location", device_details.location.clone());
+                    add_field(&mut table, "Error Code", device_details.errorCode.clone());
+                    add_field(&mut table, "MAC Address", device_details.macAddress.clone());
+                    add_field(&mut table, "Role", device_details.role.clone());
+                    add_field(
+                        &mut table,
+                        "AP Manager Interface IP",
+                        device_details.apManagerInterfaceIp.clone(),
+                    );
+                    add_field(
+                        &mut table,
+                        "Associated WLC IP",
+                        device_details.associatedWlcIp.clone(),
+                    );
+                    add_field(&mut table, "Boot Date Time", device_details.bootDateTime.clone());
+                    add_field(
+                        &mut table,
+                        "Collection Status",
+                        device_details.collectionStatus.clone(),
+                    );
+                    // Add more fields as needed
+
+                    table.printstd();
+                }
+            }
+        }
+
+        // Issue Details
+        if let Some(issue_details) = enrichment.issueDetails {
+            if let Some(issues) = issue_details.issue {
+                for (i, issue) in issues.iter().enumerate() {
+                    println!("\nIssue [{}]:", i + 1);
+                    let mut table = Table::new();
+                    table.add_row(row!["Field", "Value"]);
+
+                    add_field(&mut table, "Issue ID", issue.issueId.clone());
+                    add_field(&mut table, "Issue Source", issue.issueSource.clone());
+                    add_field(&mut table, "Issue Category", issue.issueCategory.clone());
+                    add_field(&mut table, "Issue Name", issue.issueName.clone());
+                    add_field(&mut table, "Issue Description", issue.issueDescription.clone());
+                    add_field(&mut table, "Issue Entity", issue.issueEntity.clone());
+                    add_field(&mut table, "Issue Entity Value", issue.issueEntityValue.clone());
+                    add_field(&mut table, "Issue Severity", issue.issueSeverity.clone());
+                    add_field(&mut table, "Issue Priority", issue.issuePriority.clone());
+                    add_field(&mut table, "Issue Summary", issue.issueSummary.clone());
+                    if let Some(timestamp) = issue.issueTimestamp {
+                        let datetime = DateTime::from_timestamp_millis(timestamp)
+                            .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
+                        add_field(
+                            &mut table,
+                            "Issue Timestamp",
+                            Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
+                        );
+                    } else {
+                        add_field(&mut table, "Issue Timestamp", None);
+                    }
+                    // Suggested Actions
+                    if let Some(actions) = &issue.suggestedActions {
+                        for (j, action) in actions.iter().enumerate() {
+                            let prefix = format!("Suggested Action [{}]", j + 1);
+                            add_field(&mut table, &format!("{} - Message", prefix), action.message.clone());
+                            if let Some(steps) = &action.steps {
+                                add_field(
+                                    &mut table,
+                                    &format!("{} - Steps", prefix),
+                                    Some(steps.join(", ")),
+                                );
+                            }
+                        }
+                    }
+                    // Impacted Hosts
+                    if let Some(hosts) = &issue.impactedHosts {
+                        for (k, host) in hosts.iter().enumerate() {
+                            let prefix = format!("Impacted Host [{}]", k + 1);
+                            add_field(&mut table, &format!("{} - Host Type", prefix), host.hostType.clone());
+                            add_field(&mut table, &format!("{} - Host Name", prefix), host.hostName.clone());
+                            add_field(&mut table, &format!("{} - Host OS", prefix), host.hostOs.clone());
+                            add_field(&mut table, &format!("{} - SSID", prefix), host.ssid.clone());
+                            add_field(
+                                &mut table,
+                                &format!("{} - Connected Interface", prefix),
+                                host.connectedInterface.clone(),
+                            );
+                            add_field(
+                                &mut table,
+                                &format!("{} - MAC Address", prefix),
+                                host.macAddress.clone(),
+                            );
+                            add_field(
+                                &mut table,
+                                &format!("{} - Failed Attempts", prefix),
+                                host.failedAttempts.map(|v| v.to_string()),
+                            );
+                            // Location
+                            if let Some(location) = &host.location {
+                                add_field(
+                                    &mut table,
+                                    &format!("{} - Location - Site ID", prefix),
+                                    location.siteId.clone(),
+                                );
+                                add_field(
+                                    &mut table,
+                                    &format!("{} - Location - Site Type", prefix),
+                                    location.siteType.clone(),
+                                );
+                                add_field(
+                                    &mut table,
+                                    &format!("{} - Location - Area", prefix),
+                                    location.area.clone(),
+                                );
+                                add_field(
+                                    &mut table,
+                                    &format!("{} - Location - Building", prefix),
+                                    location.building.clone(),
+                                );
+                                add_field(
+                                    &mut table,
+                                    &format!("{} - Location - Floor", prefix),
+                                    location.floor.clone(),
+                                );
+                                if let Some(aps_impacted) = &location.apsImpacted {
+                                    add_field(
+                                        &mut table,
+                                        &format!("{} - Location - APs Impacted", prefix),
+                                        Some(aps_impacted.join(", ")),
+                                    );
+                                }
+                            }
+                            if let Some(timestamp) = host.timestamp {
+                                let datetime = DateTime::from_timestamp_millis(timestamp)
+                                    .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
+                                add_field(
+                                    &mut table,
+                                    &format!("{} - Timestamp", prefix),
+                                    Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
+                                );
+                            } else {
+                                add_field(&mut table, &format!("{} - Timestamp", prefix), None);
+                            }
+                        }
+                    }
+
+                    table.printstd();
+                }
+            }
+        }
+    }
+}

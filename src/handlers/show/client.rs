@@ -3,7 +3,7 @@
 use crate::commands::show::client::ClientCommands;
 use crate::app::config;
 use crate::api::authentication::auth;
-use crate::api::clients::getclientdetail;
+use crate::api::clients::{getclientdetail, getclientenrichment};
 use crate::helpers::utils;
 use log::error;
 
@@ -41,7 +41,29 @@ pub fn handle_client_command(subcommand: ClientCommands) {
                     }
                 }
             }
-            // Handle other client commands if added
+            ClientCommands::Enrichment {
+                entity_type,
+                entity_value,
+                issue_category,
+            } => {
+                // Fetch client enrichment details
+                match getclientenrichment::get_client_enrichment(
+                    &config,
+                    &token,
+                    &entity_type,
+                    &entity_value,
+                    issue_category.as_deref(),
+                )
+                .await
+                {
+                    Ok(enrichment_response) => {
+                        utils::print_client_enrichment(enrichment_response);
+                    }
+                    Err(e) => {
+                        error!("Failed to retrieve client enrichment details: {}", e);
+                    }
+                }
+            }
         }
     });
 }
