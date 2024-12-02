@@ -1,6 +1,11 @@
 # catalysh
 a rust shell for interacting with a Cisco Catalyst Center instance, utilizing it's API
 
+
+## Disclaimer
+
+This project is still under development, there are many unfinished features currently
+
 # How to run
 
 1. Clone the repo
