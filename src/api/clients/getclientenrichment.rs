@@ -9,6 +9,7 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub enum StringOrNumber {
     String(String),
     Number(u64),
@@ -17,6 +18,7 @@ pub enum StringOrNumber {
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub enum VlanId {
     String(String),
     Number(u64),
@@ -25,10 +27,13 @@ pub enum VlanId {
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct ClientEnrichmentResponse(pub Vec<ClientEnrichment>);
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
+#[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct ClientEnrichment {
     pub userDetails: Option<UserDetails>,
     pub connectedDevice: Option<Vec<EnrichmentConnectedDevice>>,
@@ -38,6 +43,7 @@ pub struct ClientEnrichment {
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct UserDetails {
     pub id: Option<String>,
     pub connectionStatus: Option<String>,
@@ -92,6 +98,7 @@ pub struct UserDetails {
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct HealthScore {
     pub healthType: Option<String>,
     pub reason: Option<String>,
@@ -101,6 +108,7 @@ pub struct HealthScore {
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct ConnectedDevice {
     #[serde(rename = "type")]
     pub type_field: Option<String>, // `type` is a reserved keyword in Rust
@@ -117,6 +125,7 @@ pub struct ConnectedDevice {
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct EnrichmentConnectedDevice {
     pub deviceDetails: Option<DeviceDetails>,
 }
@@ -124,6 +133,7 @@ pub struct EnrichmentConnectedDevice {
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct DeviceDetails {
     pub family: Option<String>,
     #[serde(rename = "type")]
@@ -170,6 +180,7 @@ pub struct DeviceDetails {
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct NeighborTopology {
     pub nodes: Option<Vec<TopologyNode>>,
     pub links: Option<Vec<TopologyLink>>,
@@ -178,6 +189,7 @@ pub struct NeighborTopology {
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct TopologyNode {
     pub role: Option<String>,
     pub name: Option<String>,
@@ -201,6 +213,7 @@ pub struct TopologyNode {
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct TopologyLink {
     pub source: Option<String>,
     pub linkStatus: Option<String>,
@@ -213,6 +226,7 @@ pub struct TopologyLink {
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct Onboarding {
     pub averageRunDuration: Option<String>,
     pub maxRunDuration: Option<String>,
@@ -233,6 +247,7 @@ pub struct Onboarding {
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct IssueDetails {
     pub issue: Option<Vec<Issue>>,
 }
@@ -240,6 +255,7 @@ pub struct IssueDetails {
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct Issue {
     pub issueId: Option<String>,
     pub issueSource: Option<String>,
@@ -259,6 +275,7 @@ pub struct Issue {
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct SuggestedAction {
     pub message: Option<String>,
     pub steps: Option<Vec<String>>,
@@ -268,6 +285,7 @@ pub struct SuggestedAction {
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct ImpactedHost {
     pub hostType: Option<String>,
     pub hostName: Option<String>,
@@ -283,6 +301,7 @@ pub struct ImpactedHost {
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 pub struct ImpactedHostLocation {
     pub siteId: Option<String>,
     pub siteType: Option<String>,
