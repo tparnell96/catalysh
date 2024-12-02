@@ -2,6 +2,7 @@
 name = "catalysh"
 version = "0.0.2"
 edition = "2021"
+description = "A command line utility for interaction with Ciscos Catalyst Center, utilizing it's API"
 repository = "https://github.com/tparnell96/catalysh"
 homepage = "https://github.com/tparnell96/catalysh"
 license-file = "LICENSE"
