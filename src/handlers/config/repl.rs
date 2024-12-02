@@ -27,7 +27,7 @@ pub fn start_config_repl() {
     };
 
     let rl = ClapEditor::<ConfigCli>::builder()
-        .with_prompt(Box::new(prompt)lysh)
+        .with_prompt(Box::new(prompt))
         .with_editor_hook(|reed| {
             reed.with_history(Box::new(
                 FileBackedHistory::with_file(10000, "/tmp/catalysh-config-cli-history".into()).unwrap(),
