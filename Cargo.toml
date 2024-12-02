@@ -30,7 +30,3 @@ rpassword = "7.0.0"
 prettytable = "0.10.0"
 chrono = "0.4.26"
 anyhow = "1.0.93"
-
-[[bin]]
-name = "windows_installer"
-path = "src/bin/windows_installer.rs"
