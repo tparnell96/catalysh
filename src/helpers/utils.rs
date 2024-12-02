@@ -332,7 +332,6 @@ pub fn print_client_detail(response: ClientDetailResponse) {
             }
         }
 
-        // Continue adding all other fields as needed
 
         table.printstd();
     } else {

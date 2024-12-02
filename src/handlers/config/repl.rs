@@ -22,15 +22,15 @@ enum ConfigCommands {
 pub fn start_config_repl() {
     println!("Entering configuration mode. Type 'exit' or 'end' to leave.");
     let prompt = DefaultPrompt {
-        left_prompt: DefaultPromptSegment::Basic("catsh(config)#".to_owned()),
+        left_prompt: DefaultPromptSegment::Basic("catlysh(config)#".to_owned()),
         ..DefaultPrompt::default()
     };
 
     let rl = ClapEditor::<ConfigCli>::builder()
-        .with_prompt(Box::new(prompt))
+        .with_prompt(Box::new(prompt)lysh)
         .with_editor_hook(|reed| {
             reed.with_history(Box::new(
-                FileBackedHistory::with_file(10000, "/tmp/catsh-config-cli-history".into()).unwrap(),
+                FileBackedHistory::with_file(10000, "/tmp/catalysh-config-cli-history".into()).unwrap(),
             ))
         })
         .build();

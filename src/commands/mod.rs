@@ -6,7 +6,7 @@ use clap::{Parser, Subcommand};
 use crate::handlers::{handle_show_command, handle_config_command, handle_app_command};
 
 #[derive(Debug, Parser)]
-#[command(name = "catsh", about = "A command line interface for Cisco Catalyst Center")]
+#[command(name = "catalysh", about = "A command line interface for Cisco Catalyst Center")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -36,7 +36,7 @@ pub fn route_command(command: Commands) {
         Commands::Config => handle_config_command(),
         Commands::App { subcommand } => handle_app_command(subcommand),
         Commands::Exit => {
-            println!("Exiting catsh...");
+            println!("Exiting catalysh...");
             std::process::exit(0);
         }
     }

@@ -6,7 +6,7 @@ use reqwest;
 use serde_json::Value;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let repo_url = "https://api.github.com/repos/tparnell96/catsh/releases/latest";
+    let repo_url = "https://api.github.com/repos/tparnell96/catalysh/releases/latest";
     let client = reqwest::blocking::Client::new();
     let response = client.get(repo_url).header("User-Agent", "Rust-App").send()?;
 
@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let binary_url = binary_asset["browser_download_url"]
         .as_str()
         .ok_or("Invalid binary download URL")?;
-    let binary_temp_file = env::temp_dir().join(binary_asset["name"].as_str().unwrap_or("catsh_update.exe"));
+    let binary_temp_file = env::temp_dir().join(binary_asset["name"].as_str().unwrap_or("catalysh_update.exe"));
 
     println!("Downloading binary...");
     let mut file = fs::File::create(&binary_temp_file)?;
@@ -41,7 +41,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let icon_url = icon_asset["browser_download_url"]
         .as_str()
         .ok_or("Invalid icon download URL")?;
-    let icon_temp_file = env::temp_dir().join(icon_asset["name"].as_str().unwrap_or("catsh.ico"));
+    let icon_temp_file = env::temp_dir().join(icon_asset["name"].as_str().unwrap_or("catalysh.ico"));
 
     println!("Downloading icon...");
     let mut file = fs::File::create(&icon_temp_file)?;
@@ -50,23 +50,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Icon download complete: {}", icon_temp_file.display());
 
     // Move the binary to the application directory
-    let app_dir = PathBuf::from(env::var("LOCALAPPDATA")?).join("catsh");
+    let app_dir = PathBuf::from(env::var("LOCALAPPDATA")?).join("catalysh");
     if !app_dir.exists() {
         fs::create_dir_all(&app_dir)?;
     }
-    let binary_destination = app_dir.join("catsh.exe");
+    let binary_destination = app_dir.join("catalysh.exe");
     println!("Moving binary to application directory...");
     fs::copy(&binary_temp_file, &binary_destination)?;
 
     // Move the icon to the application directory
-    let icon_destination = app_dir.join("catsh.ico");
+    let icon_destination = app_dir.join("catalysh.ico");
     println!("Moving icon to application directory...");
     fs::copy(&icon_temp_file, &icon_destination)?;
 
     // Create the desktop shortcut
     println!("Creating desktop shortcut...");
     let desktop = dirs::desktop_dir().ok_or("Failed to locate the desktop directory")?;
-    let shortcut_path = desktop.join("catsh.lnk");
+    let shortcut_path = desktop.join("catalysh.lnk");
     create_shortcut(&shortcut_path, &binary_destination, &icon_destination)?;
 
     println!("Update successfully applied.");

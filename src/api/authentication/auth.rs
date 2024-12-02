@@ -87,7 +87,7 @@ struct StoredCredentials {
 
 fn get_db_path() -> PathBuf {
     let mut db_path = dirs::config_dir().unwrap();
-    db_path.push("catsh");
+    db_path.push("catalysh");
     db_path.push("credentials.db");
     db_path
 }
