@@ -26,11 +26,13 @@ use crate::api::clients::getclientenrichment::{
     SuggestedAction,
     ImpactedHost,
     ImpactedHostLocation,
+    VlanId,
 };
 
 #[allow(unused_imports)]
 use crate::api::devices::devicedetailenrichment::DeviceDetails as DeviceDetailEnrichmentDeviceDetails;
 use crate::api::devices::getdevicelist::AllDevices;
+use crate::api::clients::getclientenrichment::StringOrNumber;
 
 #[allow(unused_imports)]
 use crate::api::issues::getissuelist::{IssueListResponse, Issue as IssueListIssue};
@@ -670,6 +672,7 @@ pub fn print_ap_config(ap_config: ApConfig) {
 
 pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
     println!("Number of enrichment records: {}", response.0.len());
+
     for enrichment in response.0 {
         // User Details
         if let Some(user_details) = enrichment.userDetails {
@@ -687,13 +690,15 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
             add_field(&mut table, "Sub Type", user_details.subType);
 
             if let Some(timestamp) = user_details.lastUpdated {
-                let datetime = DateTime::from_timestamp_millis(timestamp)
-                    .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
-                add_field(
-                    &mut table,
-                    "Last Updated",
-                    Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
-                );
+                if let Some(datetime) = DateTime::from_timestamp_millis(timestamp) {
+                    add_field(
+                        &mut table,
+                        "Last Updated",
+                        Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
+                    );
+                } else {
+                    add_field(&mut table, "Last Updated", Some("Invalid Timestamp".to_string()));
+                }
             } else {
                 add_field(&mut table, "Last Updated", None);
             }
@@ -720,24 +725,166 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
                 user_details.hostIpV6.map(|ips| ips.join(", ")),
             );
             add_field(&mut table, "Auth Type", user_details.authType);
-            add_field(&mut table, "VLAN ID", user_details.vlanId);
+
+            // Handling vlanId that can be a string or a number
+            match user_details.vlanId {
+                Some(VlanId::String(ref vlan)) => {
+                    add_field(&mut table, "VLAN ID", Some(vlan.clone()));
+                }
+                Some(VlanId::Number(vlan)) => {
+                    add_field(&mut table, "VLAN ID", Some(vlan.to_string()));
+                }
+                None => {
+                    add_field(&mut table, "VLAN ID", None);
+                }
+            }
+
             add_field(&mut table, "SSID", user_details.ssid);
             add_field(&mut table, "Location", user_details.location);
             add_field(&mut table, "Client Connection", user_details.clientConnection);
-            add_field(
-                &mut table,
-                "Issue Count",
-                user_details.issueCount.map(|v| v.to_string()),
-            );
-            add_field(&mut table, "RSSI", user_details.rssi);
-            add_field(&mut table, "SNR", user_details.snr);
-            add_field(&mut table, "Data Rate", user_details.dataRate);
+
+            // Handling issueCount that can be a string or a number
+            match user_details.issueCount {
+                Some(StringOrNumber::String(ref count)) => {
+                    add_field(&mut table, "Issue Count", Some(count.clone()));
+                }
+                Some(StringOrNumber::Number(count)) => {
+                    add_field(&mut table, "Issue Count", Some(count.to_string()));
+                }
+                None => {
+                    add_field(&mut table, "Issue Count", None);
+                }
+            }
+
+            // Handling RSSI
+            match user_details.rssi {
+                Some(StringOrNumber::String(ref value)) => {
+                    add_field(&mut table, "RSSI", Some(value.clone()));
+                }
+                Some(StringOrNumber::Number(value)) => {
+                    add_field(&mut table, "RSSI", Some(value.to_string()));
+                }
+                None => {
+                    add_field(&mut table, "RSSI", None);
+                }
+            }
+
+            // Handling SNR
+            match user_details.snr {
+                Some(StringOrNumber::String(ref value)) => {
+                    add_field(&mut table, "SNR", Some(value.clone()));
+                }
+                Some(StringOrNumber::Number(value)) => {
+                    add_field(&mut table, "SNR", Some(value.to_string()));
+                }
+                None => {
+                    add_field(&mut table, "SNR", None);
+                }
+            }
+
+            // Handling Data Rate
+            match user_details.dataRate {
+                Some(StringOrNumber::String(ref value)) => {
+                    add_field(&mut table, "Data Rate", Some(value.clone()));
+                }
+                Some(StringOrNumber::Number(value)) => {
+                    add_field(&mut table, "Data Rate", Some(value.to_string()));
+                }
+                None => {
+                    add_field(&mut table, "Data Rate", None);
+                }
+            }
+
             add_field(&mut table, "Port", user_details.port);
 
             table.printstd();
+
+            // Onboarding Details
+            if let Some(onboarding) = user_details.onboarding {
+                println!("Onboarding Details:");
+                let mut table = Table::new();
+                table.add_row(row!["Field", "Value"]);
+
+                add_field(&mut table, "Average Run Duration", onboarding.averageRunDuration);
+                add_field(&mut table, "Max Run Duration", onboarding.maxRunDuration);
+                add_field(&mut table, "Average Assoc Duration", onboarding.averageAssocDuration);
+                add_field(&mut table, "Max Assoc Duration", onboarding.maxAssocDuration);
+                add_field(&mut table, "Average Auth Duration", onboarding.averageAuthDuration);
+                add_field(&mut table, "Max Auth Duration", onboarding.maxAuthDuration);
+                add_field(&mut table, "Average DHCP Duration", onboarding.averageDhcpDuration);
+                add_field(&mut table, "Max DHCP Duration", onboarding.maxDhcpDuration);
+                add_field(&mut table, "AAA Server IP", onboarding.aaaServerIp);
+                add_field(&mut table, "DHCP Server IP", onboarding.dhcpServerIp);
+
+                // Convert timestamps
+                if let Some(auth_done_time) = onboarding.authDoneTime {
+                    if let Some(datetime) = DateTime::from_timestamp_millis(auth_done_time) {
+                        add_field(
+                            &mut table,
+                            "Auth Done Time",
+                            Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
+                        );
+                    } else {
+                        add_field(&mut table, "Auth Done Time", Some("Invalid Timestamp".to_string()));
+                    }
+                }
+
+                if let Some(assoc_done_time) = onboarding.assocDoneTime {
+                    if let Some(datetime) = DateTime::from_timestamp_millis(assoc_done_time) {
+                        add_field(
+                            &mut table,
+                            "Assoc Done Time",
+                            Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
+                        );
+                    } else {
+                        add_field(&mut table, "Assoc Done Time", Some("Invalid Timestamp".to_string()));
+                    }
+                }
+
+                if let Some(dhcp_done_time) = onboarding.dhcpDoneTime {
+                    if let Some(datetime) = DateTime::from_timestamp_millis(dhcp_done_time) {
+                        add_field(
+                            &mut table,
+                            "DHCP Done Time",
+                            Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
+                        );
+                    } else {
+                        add_field(&mut table, "DHCP Done Time", Some("Invalid Timestamp".to_string()));
+                    }
+                }
+
+                // Handle `latestRootCauseList`
+                if let Some(root_causes) = onboarding.latestRootCauseList {
+                    add_field(&mut table, "Latest Root Causes", Some(root_causes.join(", ")));
+                }
+
+                table.printstd();
+            }
+
+            // Connected Devices in UserDetails
+            if let Some(connected_devices) = user_details.connectedDevice {
+                for (i, conn_dev) in connected_devices.iter().enumerate() {
+                    println!("\nConnected Device [{}]:", i + 1);
+                    let mut table = Table::new();
+                    table.add_row(row!["Field", "Value"]);
+
+                    add_field(&mut table, "Type", conn_dev.type_field.clone());
+                    add_field(&mut table, "Name", conn_dev.name.clone());
+                    add_field(&mut table, "MAC", conn_dev.mac.clone());
+                    add_field(&mut table, "ID", conn_dev.id.clone());
+                    add_field(&mut table, "IP Address", conn_dev.ip_address.clone());
+                    add_field(&mut table, "Mgmt IP", conn_dev.mgmtIp.clone());
+                    add_field(&mut table, "Band", conn_dev.band.clone());
+                    add_field(&mut table, "Mode", conn_dev.mode.clone());
+
+                    table.printstd();
+                }
+            }
+        } else {
+            println!("User Details Missing");
         }
 
-        // Connected Devices
+        // Connected Devices in Enrichment
         if let Some(connected_devices) = enrichment.connectedDevice {
             for (i, conn_dev) in connected_devices.iter().enumerate() {
                 if let Some(device_details) = &conn_dev.deviceDetails {
@@ -772,6 +919,8 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
                     table.printstd();
                 }
             }
+        } else {
+            println!("Connected Devices Missing");
         }
 
         // Issue Details
@@ -793,105 +942,27 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
                     add_field(&mut table, "Issue Priority", issue.issuePriority.clone());
                     add_field(&mut table, "Issue Summary", issue.issueSummary.clone());
                     if let Some(timestamp) = issue.issueTimestamp {
-                        let datetime = DateTime::from_timestamp_millis(timestamp)
-                            .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
-                        add_field(
-                            &mut table,
-                            "Issue Timestamp",
-                            Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
-                        );
+                        if let Some(datetime) = DateTime::from_timestamp_millis(timestamp) {
+                            add_field(
+                                &mut table,
+                                "Issue Timestamp",
+                                Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
+                            );
+                        } else {
+                            add_field(&mut table, "Issue Timestamp", Some("Invalid Timestamp".to_string()));
+                        }
                     } else {
                         add_field(&mut table, "Issue Timestamp", None);
                     }
-                    // Suggested Actions
-                    if let Some(actions) = &issue.suggestedActions {
-                        for (j, action) in actions.iter().enumerate() {
-                            let prefix = format!("Suggested Action [{}]", j + 1);
-                            add_field(&mut table, &format!("{} - Message", prefix), action.message.clone());
-                            if let Some(steps) = &action.steps {
-                                add_field(
-                                    &mut table,
-                                    &format!("{} - Steps", prefix),
-                                    Some(steps.join(", ")),
-                                );
-                            }
-                        }
-                    }
-                    // Impacted Hosts
-                    if let Some(hosts) = &issue.impactedHosts {
-                        for (k, host) in hosts.iter().enumerate() {
-                            let prefix = format!("Impacted Host [{}]", k + 1);
-                            add_field(&mut table, &format!("{} - Host Type", prefix), host.hostType.clone());
-                            add_field(&mut table, &format!("{} - Host Name", prefix), host.hostName.clone());
-                            add_field(&mut table, &format!("{} - Host OS", prefix), host.hostOs.clone());
-                            add_field(&mut table, &format!("{} - SSID", prefix), host.ssid.clone());
-                            add_field(
-                                &mut table,
-                                &format!("{} - Connected Interface", prefix),
-                                host.connectedInterface.clone(),
-                            );
-                            add_field(
-                                &mut table,
-                                &format!("{} - MAC Address", prefix),
-                                host.macAddress.clone(),
-                            );
-                            add_field(
-                                &mut table,
-                                &format!("{} - Failed Attempts", prefix),
-                                host.failedAttempts.map(|v| v.to_string()),
-                            );
-                            // Location
-                            if let Some(location) = &host.location {
-                                add_field(
-                                    &mut table,
-                                    &format!("{} - Location - Site ID", prefix),
-                                    location.siteId.clone(),
-                                );
-                                add_field(
-                                    &mut table,
-                                    &format!("{} - Location - Site Type", prefix),
-                                    location.siteType.clone(),
-                                );
-                                add_field(
-                                    &mut table,
-                                    &format!("{} - Location - Area", prefix),
-                                    location.area.clone(),
-                                );
-                                add_field(
-                                    &mut table,
-                                    &format!("{} - Location - Building", prefix),
-                                    location.building.clone(),
-                                );
-                                add_field(
-                                    &mut table,
-                                    &format!("{} - Location - Floor", prefix),
-                                    location.floor.clone(),
-                                );
-                                if let Some(aps_impacted) = &location.apsImpacted {
-                                    add_field(
-                                        &mut table,
-                                        &format!("{} - Location - APs Impacted", prefix),
-                                        Some(aps_impacted.join(", ")),
-                                    );
-                                }
-                            }
-                            if let Some(timestamp) = host.timestamp {
-                                let datetime = DateTime::from_timestamp_millis(timestamp)
-                                    .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
-                                add_field(
-                                    &mut table,
-                                    &format!("{} - Timestamp", prefix),
-                                    Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
-                                );
-                            } else {
-                                add_field(&mut table, &format!("{} - Timestamp", prefix), None);
-                            }
-                        }
-                    }
+                    // Handle suggestedActions and impactedHosts if necessary
 
                     table.printstd();
                 }
+            } else {
+                println!("No Issues Found");
             }
+        } else {
+            println!("Issue Details Missing");
         }
     }
 }

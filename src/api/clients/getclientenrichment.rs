@@ -5,55 +5,88 @@ use crate::api::authentication::auth::Token;
 use anyhow::{anyhow, Result};
 use reqwest::Client;
 use serde::Deserialize;
-use std::collections::HashMap;
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum StringOrNumber {
+    String(String),
+    Number(u64),
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum VlanId {
+    String(String),
+    Number(u64),
+}
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
 pub struct ClientEnrichmentResponse(pub Vec<ClientEnrichment>);
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
 pub struct ClientEnrichment {
     pub userDetails: Option<UserDetails>,
-    pub connectedDevice: Option<Vec<ConnectedDevice>>,
+    pub connectedDevice: Option<Vec<EnrichmentConnectedDevice>>,
     pub issueDetails: Option<IssueDetails>,
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
 pub struct UserDetails {
     pub id: Option<String>,
     pub connectionStatus: Option<String>,
+    pub tracked: Option<String>,
     pub hostType: Option<String>,
     pub userId: Option<String>,
+    pub duid: Option<String>,
+    pub identifier: Option<String>,
     pub hostName: Option<String>,
     pub hostOs: Option<String>,
     pub hostVersion: Option<String>,
     pub subType: Option<String>,
+    pub firmwareVersion: Option<String>,
+    pub deviceVendor: Option<String>,
+    pub deviceForm: Option<String>,
+    pub salesCode: Option<String>,
+    pub countryCode: Option<String>,
     pub lastUpdated: Option<i64>,
     pub healthScore: Option<Vec<HealthScore>>,
     pub hostMac: Option<String>,
     pub hostIpV4: Option<String>,
     pub hostIpV6: Option<Vec<String>>,
     pub authType: Option<String>,
-    pub vlanId: Option<String>,
+    pub vlanId: Option<VlanId>,
+    pub port: Option<String>,
     pub ssid: Option<String>,
+    pub frequency: Option<String>,
+    pub channel: Option<String>,
+    pub apGroup: Option<String>,
+    pub sgt: Option<String>,
     pub location: Option<String>,
     pub clientConnection: Option<String>,
-    pub connectedDevice: Option<Vec<String>>, // Adjust as per actual data
-    pub issueCount: Option<f64>,
-    pub rssi: Option<String>,
-    pub snr: Option<String>,
-    pub dataRate: Option<String>,
-    pub port: Option<String>,
+    pub connectedDevice: Option<Vec<ConnectedDevice>>,
+    pub issueCount: Option<StringOrNumber>,
+    pub rssi: Option<StringOrNumber>,
+    pub rssiThreshold: Option<String>,
+    pub rssiIsInclude: Option<String>,
+    pub avgRssi: Option<String>,
+    pub snr: Option<StringOrNumber>,
+    pub snrThreshold: Option<String>,
+    pub snrIsInclude: Option<String>,
+    pub avgSnr: Option<String>,
+    pub dataRate: Option<StringOrNumber>,
+    pub txBytes: Option<String>,
+    pub rxBytes: Option<String>,
+    pub dnsResponse: Option<String>,
+    pub dnsRequest: Option<String>,
+    pub onboarding: Option<Onboarding>,
+    // ... other fields as needed
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
 pub struct HealthScore {
     pub healthType: Option<String>,
     pub reason: Option<String>,
@@ -62,16 +95,30 @@ pub struct HealthScore {
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
 pub struct ConnectedDevice {
+    #[serde(rename = "type")]
+    pub type_field: Option<String>, // `type` is a reserved keyword in Rust
+    pub name: Option<String>,
+    pub mac: Option<String>,
+    pub id: Option<String>,
+    #[serde(rename = "ip address")]
+    pub ip_address: Option<String>,
+    pub mgmtIp: Option<String>,
+    pub band: Option<String>,
+    pub mode: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(non_snake_case)]
+pub struct EnrichmentConnectedDevice {
     pub deviceDetails: Option<DeviceDetails>,
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
 pub struct DeviceDetails {
     pub family: Option<String>,
+    #[serde(rename = "type")]
     pub type_field: Option<String>,
     pub location: Option<String>,
     pub errorCode: Option<String>,
@@ -109,12 +156,11 @@ pub struct DeviceDetails {
     pub instanceUuid: Option<String>,
     pub id: Option<String>,
     pub neighborTopology: Option<Vec<NeighborTopology>>,
-    pub cisco360view: Option<String>,
+    // ... other fields as needed
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
 pub struct NeighborTopology {
     pub nodes: Option<Vec<TopologyNode>>,
     pub links: Option<Vec<TopologyLink>>,
@@ -122,7 +168,6 @@ pub struct NeighborTopology {
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
 pub struct TopologyNode {
     pub role: Option<String>,
     pub name: Option<String>,
@@ -145,7 +190,6 @@ pub struct TopologyNode {
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
 pub struct TopologyLink {
     pub source: Option<String>,
     pub linkStatus: Option<String>,
@@ -157,14 +201,31 @@ pub struct TopologyLink {
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
+pub struct Onboarding {
+    pub averageRunDuration: Option<String>,
+    pub maxRunDuration: Option<String>,
+    pub averageAssocDuration: Option<String>,
+    pub maxAssocDuration: Option<String>,
+    pub averageAuthDuration: Option<String>,
+    pub maxAuthDuration: Option<String>,
+    pub averageDhcpDuration: Option<String>,
+    pub maxDhcpDuration: Option<String>,
+    pub aaaServerIp: Option<String>,
+    pub dhcpServerIp: Option<String>,
+    pub authDoneTime: Option<i64>,
+    pub assocDoneTime: Option<i64>,
+    pub dhcpDoneTime: Option<i64>,
+    pub latestRootCauseList: Option<Vec<String>>,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(non_snake_case)]
 pub struct IssueDetails {
     pub issue: Option<Vec<Issue>>,
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
 pub struct Issue {
     pub issueId: Option<String>,
     pub issueSource: Option<String>,
@@ -183,7 +244,6 @@ pub struct Issue {
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
 pub struct SuggestedAction {
     pub message: Option<String>,
     pub steps: Option<Vec<String>>,
@@ -191,7 +251,6 @@ pub struct SuggestedAction {
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
 pub struct ImpactedHost {
     pub hostType: Option<String>,
     pub hostName: Option<String>,
@@ -206,7 +265,6 @@ pub struct ImpactedHost {
 
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
 pub struct ImpactedHostLocation {
     pub siteId: Option<String>,
     pub siteType: Option<String>,
@@ -229,24 +287,26 @@ pub async fn get_client_enrichment(
 
     let url = format!("{}/dna/intent/api/v1/client-enrichment-details", config.dnac_url);
 
-    let mut query_params = HashMap::new();
-    query_params.insert("entity_type", entity_type);
-    query_params.insert("entity_value", entity_value);
-    if let Some(category) = issue_category {
-        query_params.insert("issueCategory", category);
-    }
-
-    let resp = client
+    // Build the request with headers
+    let mut req_builder = client
         .get(&url)
         .header("X-Auth-Token", &token.value)
-        .query(&query_params)
-        .send()
-        .await?;
+        .header("entity_type", entity_type)
+        .header("entity_value", entity_value);
+
+    if let Some(category) = issue_category {
+        req_builder = req_builder.header("issueCategory", category);
+    }
+
+    let resp = req_builder.send().await?;
 
     if !resp.status().is_success() {
+        let status = resp.status();
+        let error_text = resp.text().await.unwrap_or_default();
         return Err(anyhow!(
-            "Failed to retrieve client enrichment details: {}",
-            resp.status()
+            "Failed to retrieve client enrichment details: {} - {}",
+            status,
+            error_text
         ));
     }
 
