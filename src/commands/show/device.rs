@@ -35,9 +35,9 @@ pub enum DeviceListFilter {
         /// Optional partial IP address to filter by
         partial_ip: Option<String>,
     },
-    /// List devices filtered by WLC
+    /// List devices filtered by WLC IP address
     Wlc {
-        /// Optional partial WLC name to filter by
+        /// Optional partial WLC ip to filter by
         partial_wlc: Option<String>,
     },
 }
