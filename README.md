@@ -13,9 +13,7 @@ This project is still under development, there are many unfinished features curr
 2. Using cargo run the application or build it
 
 ```
-
 cargo run
-
 ```
 
 
@@ -24,17 +22,13 @@ cargo run
 To get a list of available commands from any point
 
 ```
-
 -help
-
 ```
 
 As an example you could run 
 
 ```
-
 show device -help
-
 ```
 
 You can also press Tab to auto-complete a command, or get a list of available commands in the next sequence
