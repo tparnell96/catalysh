@@ -67,7 +67,7 @@ pub async fn get_all_devices(config: &Config, token: &Token) -> Result<Vec<AllDe
         .build()?;
 
     let mut all_devices: Vec<AllDevices> = Vec::new();
-    let mut offset = 1; // Adjust based on API documentation (could be 0)
+    let mut offset = 1;
     let limit = 500;    // Set the limit as per API maximum
 
     loop {
