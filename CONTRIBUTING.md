@@ -61,6 +61,7 @@ Commands in catalysh follow a modular structure with three main types:
 
 #### Basic Command Structure
 ```rust
+
 // src/commands/your_category/your_command.rs
 pub struct YourCommand {
     args: YourCommandArgs,
