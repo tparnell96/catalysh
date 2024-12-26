@@ -84,8 +84,12 @@ catalysh prioritizes security in handling sensitive data:
 ## Troubleshooting
 
 1. **Authentication Issues**
-- Use `app config reset` to clear stored credentials
-- Verify your Catalyst Center URL is correct
+- Use `app config reset` to clear the full applicatoin config (You will be prompted to set it back up on the next command that utilizes the Catalyst Center API)
+- Verify your Catalyst Center URL is correct using:
+```
+app config show
+
+```
 - Ensure your user account has appropriate permissions
 
 2. **SSL Certificate Issues**
