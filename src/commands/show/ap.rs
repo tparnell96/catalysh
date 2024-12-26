@@ -9,4 +9,6 @@ pub enum ApCommands {
         /// MAC address of the AP
         mac_address: String,
     },
+    /// Show all RF profiles
+    RfProfile,
 }
