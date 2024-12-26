@@ -1,4 +1,5 @@
 use anyhow::Result;
+use rpassword;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::{self, Write};
@@ -86,12 +87,18 @@ fn setup_config() -> Result<Config> {
     io::stdin().read_line(&mut username)?;
     username = username.trim().to_string();
 
+    let password = rpassword::prompt_password("Enter your password: ")?;
+
     print!("Verify SSL certificates? (y/n): ");
     io::stdout().flush()?;
     io::stdin().read_line(&mut verify_ssl_input)?;
     let verify_ssl = verify_ssl_input.trim().to_lowercase() == "y";
 
-    println!("Configuration complete. Please proceed to store your credentials.");
+    // Store password securely
+    let auth_storage = crate::app::auth_storage::AuthStorage::new(get_credentials_db_path())?;
+    auth_storage.store_credentials(&username, &password)?;
+
+    println!("Configuration complete. Credentials stored securely.");
 
     Ok(Config::new(dnac_url, username, verify_ssl))
 }
