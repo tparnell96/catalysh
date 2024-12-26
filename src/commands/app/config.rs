@@ -12,11 +12,19 @@ pub enum AppConfigCommands {
         url: String,
     },
     /// Set SSL verification
+    /// Set SSL verification
     SetVerifySsl {
-        #[arg(long, help = "Enable or disable SSL verification")]
-        enabled: bool,
+        #[command(subcommand)]
+        action: SetVerifySslAction,
     },
-    /// Reset only the stored credentials
     ResetCredentials,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum SetVerifySslAction {
+    /// Enable SSL verification
+    Enable,
+    /// Disable SSL verification  
+    Disable,
 }
 

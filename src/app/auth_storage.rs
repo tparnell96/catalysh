@@ -120,6 +120,7 @@ impl AuthStorage {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn verify_credentials(&self, id: &str, password: &str) -> Result<bool> {
         let stored_password = self.get_credentials(id)?;
         Ok(stored_password == password)

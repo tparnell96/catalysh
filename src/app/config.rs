@@ -94,10 +94,30 @@ pub fn reset_credentials() -> Result<()> {
     let credentials_db_path = get_credentials_db_path();
     if credentials_db_path.exists() {
         fs::remove_file(credentials_db_path)?;
-        println!("Credentials have been reset.");
-    } else {
-        println!("No credentials found to reset.");
+        println!("Previous credentials have been removed.");
     }
+    
+    // Load existing config
+    let mut config = load_config()?;
+    
+    // Prompt for username
+    print!("Enter username: ");
+    io::stdout().flush()?;
+    let mut username = String::new();
+    io::stdin().read_line(&mut username)?;
+    config.username = username.trim().to_string();
+    
+    // Save the new username to config
+    save_config(&config)?;
+    
+    // Prompt for new password
+    let password = rpassword::prompt_password("Enter new password: ")?;
+    
+    // Store new credentials
+    let auth_storage = crate::app::auth_storage::AuthStorage::new(get_credentials_db_path())?;
+    auth_storage.store_credentials(&config.username, &password)?;
+    
+    println!("New credentials have been stored.");
     Ok(())
 }
 

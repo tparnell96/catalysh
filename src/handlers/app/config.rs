@@ -1,6 +1,6 @@
 use log::error;
-use crate::app::config; // Adjusted import
-use crate::commands::app::config::AppConfigCommands;
+use crate::app::config;
+use crate::commands::app::config::{AppConfigCommands, SetVerifySslAction};
 
 pub fn handle_app_config_command(subcommand: AppConfigCommands) {
     match subcommand {
@@ -18,7 +18,6 @@ pub fn handle_app_config_command(subcommand: AppConfigCommands) {
                     println!("---------------------");
                     println!("DNA Center URL: {}", config.dnac_url);
                     println!("Username: {}", config.username);
-                    // Don't show the password for security
                     println!("Password: [hidden]");
                     println!("Verify SSL: {}", config.verify_ssl);
                 }
@@ -32,8 +31,9 @@ pub fn handle_app_config_command(subcommand: AppConfigCommands) {
                 error!("Failed to update DNA Center URL: {}", e);
             }
         }
-        AppConfigCommands::SetVerifySsl { enabled } => {
-            if let Err(e) = config::update_verify_ssl(enabled) {
+        AppConfigCommands::SetVerifySsl { action } => {
+            let enable = matches!(action, SetVerifySslAction::Enable);
+            if let Err(e) = config::update_verify_ssl(enable) {
                 error!("Failed to update SSL verification setting: {}", e);
             }
         }
