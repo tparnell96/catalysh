@@ -15,6 +15,8 @@ struct ConfigCli {
 enum ConfigCommands {
     /// Dummy command for demonstration
     Dummy,
+    /// Placeholder for future ap config commands
+    Ap,
     /// Exit configuration mode
     Exit,
     /// End configuration mode
@@ -57,6 +59,9 @@ pub fn start_config_repl() {
         rl.repl(|cli| match cli.command {
             ConfigCommands::Dummy => {
                 println!("Dummy command executed in config mode.");
+            }
+            ConfigCommands::Ap => {
+                println!("ap command executed");
             }
             ConfigCommands::Exit | ConfigCommands::End => {
                 panic_any(ExitRepl);
