@@ -71,6 +71,36 @@ pub fn reset_config() -> Result<()> {
     Ok(())
 }
 
+/// Update the DNA Center URL in the configuration
+pub fn update_dnac_url(url: String) -> Result<()> {
+    let mut config = load_config()?;
+    config.dnac_url = url;
+    save_config(&config)?;
+    println!("DNA Center URL updated successfully.");
+    Ok(())
+}
+
+/// Update the SSL verification setting in the configuration
+pub fn update_verify_ssl(verify: bool) -> Result<()> {
+    let mut config = load_config()?;
+    config.verify_ssl = verify;
+    save_config(&config)?;
+    println!("SSL verification setting updated successfully.");
+    Ok(())
+}
+
+/// Reset only the stored credentials while keeping other settings
+pub fn reset_credentials() -> Result<()> {
+    let credentials_db_path = get_credentials_db_path();
+    if credentials_db_path.exists() {
+        fs::remove_file(credentials_db_path)?;
+        println!("Credentials have been reset.");
+    } else {
+        println!("No credentials found to reset.");
+    }
+    Ok(())
+}
+
 /// Setup configuration by prompting the user
 fn setup_config() -> Result<Config> {
     let mut dnac_url = String::new();
