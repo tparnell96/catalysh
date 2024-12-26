@@ -4,6 +4,7 @@ Thank you for your interest in contributing to catalysh! This document provides 
 
 ## Project Structure
 
+
 ```
 catalysh/
 ├── src/
@@ -24,6 +25,7 @@ catalysh/
 ## Development Setup
 
 1. **Environment Setup**
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/catalysh.git
@@ -43,10 +45,17 @@ cargo build
 
 ## Command Flow Architecture
 
+catalysh uses a Clap-based command routing system:
 
-![Command Flow Diagram](docs/command_flow.svg)
-
-
+1. Commands are defined as variants in a root Commands enum
+2. Clap handles command-line argument parsing using derive macros
+3. Commands are routed via pattern matching on the enum variants
+4. Each command implementation lives in its own module
+5. The command execution flow is:
+- Parse command line args -> Commands enum
+- Match on Commands variant
+- Execute specific command implementation
+- Return result
 
 ## Adding New Commands
 
@@ -59,38 +68,45 @@ Commands in catalysh follow a modular structure with three main types:
 
 ### 2. Command Implementation Steps
 
-#### Basic Command Structure
+#### Command Enum Definition
+
 ```rust
-
-// src/commands/your_category/your_command.rs
-pub struct YourCommand {
-    args: YourCommandArgs,
+// src/commands/mod.rs
+#[derive(Subcommand, Debug)]
+pub enum Commands {
+    /// Your command's help text
+    YourCommand {
+        #[clap(long, short)]
+        parameter: String,
+    },
 }
+```
 
-#[derive(Args, Debug)]
-pub struct YourCommandArgs {
-    #[arg(long, short)]
-    parameter: String,
-}
+#### Command Implementation
 
-impl Command for YourCommand {
-    fn execute(&self) -> CommandResult {
-        // Command logic here
+```rust
+impl Commands {
+    pub async fn execute(self) -> Result<()> {
+        match self {
+            Commands::YourCommand { parameter } => {
+                // Command implementation here
+            }
+        }
     }
 }
 ```
 
-#### Handler Implementation
-```rust
-// src/handlers/your_category/your_command.rs
-pub struct YourCommandHandler {
-    api_client: ApiClient,
-}
+#### Command Routing
 
-impl CommandHandler for YourCommandHandler {
-    fn execute(&self, args: &CommandArgs) -> Result<()> {
-        let api_response = self.api_client.get_data(args)?;
-        self.format_and_display(api_response)
+```rust
+#[tokio::main]
+async fn main() -> Result<()> {
+    let cli = Cli::parse();
+    
+    match cli.command {
+        Commands::YourCommand { parameter } => {
+            // Route to your command implementation
+        }
     }
 }
 ```
@@ -98,6 +114,7 @@ impl CommandHandler for YourCommandHandler {
 ### 3. API Integration
 
 #### API Structure
+
 ```rust
 // src/api/your_category/mod.rs
 pub struct YourApiEndpoint {
@@ -118,6 +135,7 @@ impl YourApiEndpoint {
 ```
 
 #### Response Handling
+
 ```rust
 #[derive(Deserialize)]
 pub struct ApiResponse {
@@ -132,15 +150,34 @@ impl From<ApiResponse> for DisplayableOutput {
 }
 ```
 
-### 4. Command Registration
+### 4. Adding a New Command
 
-1. Add command module to appropriate category
-2. Register in dispatcher:
+1. Define the command variant in the Commands enum
+2. Add command parameters with Clap attributes
+3. Implement the command execution in the match arm:
+
 ```rust
-commands.insert(
-    "your-command",
-    Box::new(YourCommandHandler::new(api_client))
-);
+// In src/commands/mod.rs
+#[derive(Subcommand, Debug)]
+pub enum Commands {
+    ExistingCommand { /* ... */ },
+    // Add your new command:
+    NewCommand {
+        #[clap(long, short)]
+        parameter: String,
+    }
+}
+
+impl Commands {
+    pub async fn execute(self) -> Result<()> {
+        match self {
+            // Add your command's execution:
+            Commands::NewCommand { parameter } => {
+                // Implementation here
+            }
+        }
+    }
+}
 ```
 
 ### 5. Testing Strategy
@@ -201,6 +238,7 @@ mod tests {
 ## Development Workflow
 
 1. **Creating Features**
+
 ```bash
 # Create feature branch
 git checkout -b feature/your-feature-name
@@ -213,6 +251,7 @@ git push origin feature/your-feature-name
 ```
 
 2. **Testing**
+
 ```bash
 # Run tests
 cargo test
