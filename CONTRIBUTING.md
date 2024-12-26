@@ -41,36 +41,122 @@ cargo build
 - SQLite development libraries
 - OpenSSL development libraries
 
+## Command Flow Architecture
+
+
+![Command Flow Diagram](docs/command_flow.svg)
+
+
+```
+
 ## Adding New Commands
 
-1. **Command Handler Structure**
+### 1. Command Structure Overview
+Commands in catalysh follow a modular structure with three main types:
+- Show commands (data display)
+- App commands (application control)
+- Config commands (configuration REPL)
+
+### 2. Command Implementation Steps
+
+#### Basic Command Structure
 ```rust
-// src/handlers/your_command/mod.rs
-pub struct YourCommandHandler {
-    // Handler state
+// src/commands/your_category/your_command.rs
+pub struct YourCommand {
+    args: YourCommandArgs,
 }
 
-impl CommandHandler for YourCommandHandler {
-    fn execute(&self, args: &[String]) -> Result<()> {
-        // Implementation
+#[derive(Args, Debug)]
+pub struct YourCommandArgs {
+    #[arg(long, short)]
+    parameter: String,
+}
+
+impl Command for YourCommand {
+    fn execute(&self) -> CommandResult {
+        // Command logic here
     }
 }
 ```
 
-2. **Register Command**
-- Add command to top-level dispatcher in `main.rs`
-- Create help text and argument parsing
-- Implement error handling
+#### Handler Implementation
+```rust
+// src/handlers/your_category/your_command.rs
+pub struct YourCommandHandler {
+    api_client: ApiClient,
+}
 
-3. **Testing**
+impl CommandHandler for YourCommandHandler {
+    fn execute(&self, args: &CommandArgs) -> Result<()> {
+        let api_response = self.api_client.get_data(args)?;
+        self.format_and_display(api_response)
+    }
+}
+```
+
+### 3. API Integration
+
+#### API Structure
+```rust
+// src/api/your_category/mod.rs
+pub struct YourApiEndpoint {
+    client: HttpClient,
+}
+
+impl YourApiEndpoint {
+    pub async fn fetch_data(&self, params: &RequestParams) -> ApiResult<Response> {
+        let response = self.client
+            .get(&self.endpoint_url())
+            .query(params)
+            .send()
+            .await?;
+        
+        response.json::<ResponseType>().await
+    }
+}
+```
+
+#### Response Handling
+```rust
+#[derive(Deserialize)]
+pub struct ApiResponse {
+    #[serde(rename = "response")]
+    data: Vec<DataItem>,
+}
+
+impl From<ApiResponse> for DisplayableOutput {
+    fn from(response: ApiResponse) -> Self {
+        // Transform API response to display format
+    }
+}
+```
+
+### 4. Command Registration
+
+1. Add command module to appropriate category
+2. Register in dispatcher:
+```rust
+commands.insert(
+    "your-command",
+    Box::new(YourCommandHandler::new(api_client))
+);
+```
+
+### 5. Testing Strategy
+
 ```rust
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_utils::mock_api;
 
     #[test]
-    fn test_your_command() {
-        // Test implementation
+    fn test_command_execution() {
+        let mock_client = mock_api::setup();
+        let handler = YourCommandHandler::new(mock_client);
+        
+        let result = handler.execute(&["arg1", "arg2"]);
+        assert!(result.is_ok());
     }
 }
 ```

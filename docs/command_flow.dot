@@ -1,0 +1,40 @@
+digraph command_flow {
+    rankdir=LR;
+    node [shape=box, style=rounded, fontname="Arial", fontsize=12];
+    edge [fontname="Arial", fontsize=10];
+    
+    subgraph cluster_cli {
+        style=rounded;
+        color="#E0E0E0";
+        label="CLI Layer";
+        
+        cli [label="CLI Input"];
+        parser [label="Command Parser"];
+        dispatcher [label="Command Dispatcher"];
+    }
+    
+    subgraph cluster_business {
+        style=rounded;
+        color="#E0E0E0";
+        label="Business Layer";
+        
+        handler [label="Command Handler"];
+    }
+    
+    subgraph cluster_api {
+        style=rounded;
+        color="#E0E0E0";
+        label="API Layer";
+        
+        api [label="API Client"];
+        dna [label="DNA Center API", shape=cloud];
+    }
+    
+    cli -> parser;
+    parser -> dispatcher;
+    dispatcher -> handler;
+    handler -> api;
+    api -> dna [dir=both];
+    handler -> cli [label="Output"];
+}
+
