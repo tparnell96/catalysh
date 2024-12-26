@@ -3,7 +3,6 @@ use crate::app::config::Config;
 use crate::helpers::utils;
 use anyhow::{anyhow, Result};
 use rusqlite::{params, Connection};
-use std::path::PathBuf;
 
 use reqwest::Client;
 use serde::Deserialize;
@@ -34,12 +33,13 @@ pub async fn authenticate(config: &Config) -> Result<Token> {
     }
 
     // Token is missing or expired; proceed to authenticate
-    let auth_storage = AuthStorage::new(get_db_path())?;
+    // Use AuthStorage from the config module for credential management
+    let auth_storage = AuthStorage::new(crate::app::config::get_credentials_db_path())?;
 
     // Get stored credentials
     let password = match auth_storage.get_credentials(&config.username) {
         Ok(pwd) => pwd,
-        Err(_) => return Err(anyhow!("Could not retrieve stored credentials. Please run 'app config reset' and reconfigure."))
+        Err(e) => return Err(anyhow!("Could not retrieve credentials for user '{}': {}. Please run 'app config reset' and reconfigure.", config.username, e))
     };
 
     let client = Client::builder()
@@ -83,15 +83,9 @@ pub async fn authenticate(config: &Config) -> Result<Token> {
     Ok(token)
 }
 
-fn get_db_path() -> PathBuf {
-    let mut db_path = dirs::config_dir().unwrap();
-    db_path.push("catalysh");
-    db_path.push("credentials.db");
-    db_path
-}
 // Functions to store and load the token
 fn store_token(token: &Token) -> Result<()> {
-    let db_path = get_db_path();
+    let db_path = crate::app::config::get_credentials_db_path();
     let conn = Connection::open(db_path)?;
 
     create_tables(&conn)?;
@@ -110,7 +104,7 @@ fn store_token(token: &Token) -> Result<()> {
 }
 
 fn load_token() -> Result<Option<Token>> {
-    let db_path = get_db_path();
+    let db_path = crate::app::config::get_credentials_db_path();
     let conn = Connection::open(db_path)?;
 
     create_tables(&conn)?;

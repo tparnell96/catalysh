@@ -96,8 +96,11 @@ fn setup_config() -> Result<Config> {
 
     // Store password securely
     let auth_storage = crate::app::auth_storage::AuthStorage::new(get_credentials_db_path())?;
-    auth_storage.store_credentials(&username, &password)?;
-
+    // Store credentials with explicit username match
+    match auth_storage.store_credentials(&username, &password) {
+        Ok(_) => println!("Credentials stored securely."),
+        Err(e) => return Err(anyhow::anyhow!("Failed to store credentials: {}", e))
+    }
     println!("Configuration complete. Credentials stored securely.");
 
     Ok(Config::new(dnac_url, username, verify_ssl))
