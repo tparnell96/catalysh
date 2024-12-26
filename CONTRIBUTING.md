@@ -47,11 +47,11 @@ cargo build
 ![Command Flow Diagram](docs/command_flow.svg)
 
 
-```
 
 ## Adding New Commands
 
 ### 1. Command Structure Overview
+
 Commands in catalysh follow a modular structure with three main types:
 - Show commands (data display)
 - App commands (application control)
