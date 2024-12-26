@@ -4,5 +4,7 @@ use clap::Subcommand;
 pub enum AppConfigCommands {
     /// Reset app configuration
     Reset,
+    /// Show current configuration
+    Show,
 }
 

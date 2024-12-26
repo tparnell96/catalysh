@@ -11,6 +11,22 @@ pub fn handle_app_config_command(subcommand: AppConfigCommands) {
                 println!("Configuration reset successfully.");
             }
         }
+        AppConfigCommands::Show => {
+            match config::load_config() {
+                Ok(config) => {
+                    println!("Current Configuration:");
+                    println!("---------------------");
+                    println!("DNA Center URL: {}", config.dnac_url);
+                    println!("Username: {}", config.username);
+                    // Don't show the password for security
+                    println!("Password: [hidden]");
+                    println!("Verify SSL: {}", config.verify_ssl);
+                }
+                Err(e) => {
+                    error!("Failed to read configuration: {}", e);
+                }
+            }
+        }
     }
 }
 
