@@ -3,7 +3,8 @@ pub mod config;
 pub mod app;
 
 use clap::{Parser, Subcommand};
-use crate::handlers::{handle_show_command, handle_config_command, handle_app_command};
+use log::error;
+use crate::handlers::{handle_show_command, handle_config_command, handle_app_command, clear_screen};
 
 #[derive(Debug, Parser)]
 #[command(name = "catalysh", about = "A command line interface for Cisco Catalyst Center")]
@@ -26,6 +27,8 @@ pub enum Commands {
         #[command(subcommand)]
         subcommand: app::AppCommands,
     },
+    /// Clear the screen
+    Clear,
     /// Exit the program
     Exit,
 }
@@ -35,10 +38,14 @@ pub fn route_command(command: Commands) {
         Commands::Show { subcommand } => handle_show_command(subcommand),
         Commands::Config => handle_config_command(),
         Commands::App { subcommand } => handle_app_command(subcommand),
+        Commands::Clear => {
+            if let Err(e) = clear_screen() {
+                error!("Failed to clear screen: {}", e);
+            }
+        }
         Commands::Exit => {
             println!("Exiting catalysh...");
             std::process::exit(0);
         }
     }
 }
-

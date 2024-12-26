@@ -12,6 +12,7 @@ pub enum AppCommands {
     },
     /// Update the program to the latest release available (Program restart needed for changes to take effect)
     Update,
-    // Additional app-related subcommands can be added here
+    /// Clear the screen
+    Clear,
 }
 
