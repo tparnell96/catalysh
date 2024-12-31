@@ -22,3 +22,4 @@ Cargo.lock
 .github/workflows
 
 build.sh
+repomix-output.txt
