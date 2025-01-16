@@ -263,11 +263,5 @@ cargo clippy
 cargo fmt --check
 ```
 
-## Getting Help
-
-- Join our discussion forum
-- Check existing issues and PRs
-- Contact maintainers
-
 Thank you for contributing to catalysh!
 
