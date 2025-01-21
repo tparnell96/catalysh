@@ -1,46 +1,31 @@
 // src/helpers/utils.rs
 #[allow(unused_imports)]
 use crate::api::clients::getclientdetail::{
-    ClientDetailResponse,
-    HealthScore as ClientDetailHealthScore,
-    ConnectedDevice as ClientDetailConnectedDevice,
-    Onboarding,
-    ConnectionInfo,
-    Topology,
-    TopologyNode as ClientDetailTopologyNode,
-    TopologyLink as ClientDetailTopologyLink,
+    ClientDetailResponse, ConnectedDevice as ClientDetailConnectedDevice, ConnectionInfo,
+    HealthScore as ClientDetailHealthScore, Onboarding, Topology,
+    TopologyLink as ClientDetailTopologyLink, TopologyNode as ClientDetailTopologyNode,
 };
 #[allow(unused_imports)]
 use crate::api::clients::getclientenrichment::{
-    ClientEnrichmentResponse,
-    ClientEnrichment,
-    UserDetails,
-    HealthScore as ClientEnrichmentHealthScore,
-    ConnectedDevice as ClientEnrichmentConnectedDevice,
-    DeviceDetails as ClientEnrichmentDeviceDetails,
-    NeighborTopology,
-    TopologyNode as ClientEnrichmentTopologyNode,
-    TopologyLink as ClientEnrichmentTopologyLink,
-    IssueDetails,
-    Issue as ClientEnrichmentIssue,
-    SuggestedAction,
-    ImpactedHost,
-    ImpactedHostLocation,
-    VlanId,
+    ClientEnrichment, ClientEnrichmentResponse, ConnectedDevice as ClientEnrichmentConnectedDevice,
+    DeviceDetails as ClientEnrichmentDeviceDetails, HealthScore as ClientEnrichmentHealthScore,
+    ImpactedHost, ImpactedHostLocation, Issue as ClientEnrichmentIssue, IssueDetails,
+    NeighborTopology, SuggestedAction, TopologyLink as ClientEnrichmentTopologyLink,
+    TopologyNode as ClientEnrichmentTopologyNode, UserDetails, VlanId,
 };
 
+use crate::api::clients::getclientenrichment::StringOrNumber;
 #[allow(unused_imports)]
 use crate::api::devices::devicedetailenrichment::DeviceDetails as DeviceDetailEnrichmentDeviceDetails;
 use crate::api::devices::getdevicelist::AllDevices;
-use crate::api::clients::getclientenrichment::StringOrNumber;
 
-#[allow(unused_imports)]
-use crate::api::issues::getissuelist::{IssueListResponse, Issue as IssueListIssue};
 use crate::api::devices::devicedetailenrichment::DeviceDetails;
+#[allow(unused_imports)]
+use crate::api::issues::getissuelist::{Issue as IssueListIssue, IssueListResponse};
 use crate::api::wireless::accesspointconfig::ApConfig;
 
 use chrono::{DateTime, Utc};
-use prettytable::{row, Table};
+use prettytable::{format, row, Table};
 
 pub fn current_timestamp() -> u64 {
     Utc::now().timestamp_millis() as u64
@@ -63,16 +48,20 @@ pub fn print_devices(devices: Vec<AllDevices>) {
     for device in devices {
         table.add_row(row![
             device.hostname.unwrap_or_else(|| "N/A".to_string()),
-            device.management_ip_address.unwrap_or_else(|| "N/A".to_string()),
+            device
+                .management_ip_address
+                .unwrap_or_else(|| "N/A".to_string()),
             device.serial_number.unwrap_or_else(|| "N/A".to_string()),
             device.mac_address.unwrap_or_else(|| "N/A".to_string()),
-            device.ap_ethernet_mac_address.unwrap_or_else(|| "N/A".to_string()),
+            device
+                .ap_ethernet_mac_address
+                .unwrap_or_else(|| "N/A".to_string()),
             device.platform_id.unwrap_or_else(|| "N/A".to_string()),
             device.software_version.unwrap_or_else(|| "N/A".to_string()),
             device.role.unwrap_or_else(|| "N/A".to_string()),
         ]);
     }
-
+    table.set_format(*format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
     table.printstd();
 }
 
@@ -82,23 +71,27 @@ pub fn print_device_detail(device: AllDevices) {
     table.add_row(row!["Field", "Value"]);
 
     add_field(&mut table, "Hostname", device.hostname);
-    add_field(
-        &mut table,
-        "Management IP",
-        device.management_ip_address,
-    );
+    add_field(&mut table, "Management IP", device.management_ip_address);
     add_field(&mut table, "Serial Number", device.serial_number);
     add_field(&mut table, "MAC Address", device.mac_address);
     add_field(&mut table, "Platform ID", device.platform_id);
     add_field(&mut table, "Software Version", device.software_version);
     add_field(&mut table, "Role", device.role);
-    add_field(&mut table, "Reachability Status", device.reachability_status);
+    add_field(
+        &mut table,
+        "Reachability Status",
+        device.reachability_status,
+    );
     add_field(&mut table, "Uptime", device.up_time);
-    add_field(&mut table, "Last Updated", device.last_update_time.map(|timestamp| {
-        let datetime = DateTime::from_timestamp_millis(timestamp as i64)
-            .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
-        datetime.format("%Y-%m-%d %H:%M:%S").to_string()
-    }));
+    add_field(
+        &mut table,
+        "Last Updated",
+        device.last_update_time.map(|timestamp| {
+            let datetime = DateTime::from_timestamp_millis(timestamp as i64)
+                .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
+            datetime.format("%Y-%m-%d %H:%M:%S").to_string()
+        }),
+    );
     // Add more fields as necessary
 
     table.printstd();
@@ -117,11 +110,7 @@ pub fn print_device_enrichment(device_details: DeviceDetails) {
     );
     add_field(&mut table, "Serial Number", device_details.serialNumber);
     add_field(&mut table, "MAC Address", device_details.macAddress);
-    add_field(
-        &mut table,
-        "Platform ID",
-        device_details.platformId,
-    );
+    add_field(&mut table, "Platform ID", device_details.platformId);
     add_field(
         &mut table,
         "Software Version",
@@ -179,8 +168,16 @@ pub fn print_client_detail(response: ClientDetailResponse) {
         if let Some(health_scores) = detail.healthScore {
             for (i, hs) in health_scores.iter().enumerate() {
                 let prefix = format!("Health Score [{}]", i + 1);
-                add_field(&mut table, &format!("{} - Health Type", prefix), hs.healthType.clone());
-                add_field(&mut table, &format!("{} - Reason", prefix), hs.reason.clone());
+                add_field(
+                    &mut table,
+                    &format!("{} - Health Type", prefix),
+                    hs.healthType.clone(),
+                );
+                add_field(
+                    &mut table,
+                    &format!("{} - Reason", prefix),
+                    hs.reason.clone(),
+                );
                 add_field(
                     &mut table,
                     &format!("{} - Score", prefix),
@@ -197,16 +194,8 @@ pub fn print_client_detail(response: ClientDetailResponse) {
             detail.hostIpV6.map(|ips| ips.join(", ")),
         );
         add_field(&mut table, "Auth Type", detail.authType);
-        add_field(
-            &mut table,
-            "VLAN ID",
-            detail.vlanId.map(|v| v.to_string()),
-        );
-        add_field(
-            &mut table,
-            "VNID",
-            detail.vnid.map(|v| v.to_string()),
-        );
+        add_field(&mut table, "VLAN ID", detail.vlanId.map(|v| v.to_string()));
+        add_field(&mut table, "VNID", detail.vnid.map(|v| v.to_string()));
         add_field(&mut table, "SSID", detail.ssid);
         add_field(&mut table, "Frequency", detail.frequency);
         add_field(&mut table, "Channel", detail.channel);
@@ -218,12 +207,24 @@ pub fn print_client_detail(response: ClientDetailResponse) {
         if let Some(connected_devices) = detail.connectedDevice {
             for (i, cd) in connected_devices.iter().enumerate() {
                 let prefix = format!("Connected Device [{}]", i + 1);
-                add_field(&mut table, &format!("{} - Type", prefix), cd.device_type.clone());
+                add_field(
+                    &mut table,
+                    &format!("{} - Type", prefix),
+                    cd.device_type.clone(),
+                );
                 add_field(&mut table, &format!("{} - Name", prefix), cd.name.clone());
                 add_field(&mut table, &format!("{} - MAC", prefix), cd.mac.clone());
                 add_field(&mut table, &format!("{} - ID", prefix), cd.id.clone());
-                add_field(&mut table, &format!("{} - IP Address", prefix), cd.ip_address.clone());
-                add_field(&mut table, &format!("{} - Mgmt IP", prefix), cd.mgmtIp.clone());
+                add_field(
+                    &mut table,
+                    &format!("{} - IP Address", prefix),
+                    cd.ip_address.clone(),
+                );
+                add_field(
+                    &mut table,
+                    &format!("{} - Mgmt IP", prefix),
+                    cd.mgmtIp.clone(),
+                );
                 add_field(&mut table, &format!("{} - Band", prefix), cd.band.clone());
                 add_field(&mut table, &format!("{} - Mode", prefix), cd.mode.clone());
             }
@@ -332,7 +333,6 @@ pub fn print_client_detail(response: ClientDetailResponse) {
             }
         }
 
-
         table.printstd();
     } else {
         println!("No client details available.");
@@ -345,8 +345,16 @@ pub fn print_client_detail(response: ClientDetailResponse) {
         table.add_row(row!["Field", "Value"]);
 
         add_field(&mut table, "Host Type", connection_info.hostType);
-        add_field(&mut table, "Network Device Name", connection_info.nwDeviceName);
-        add_field(&mut table, "Network Device MAC", connection_info.nwDeviceMac);
+        add_field(
+            &mut table,
+            "Network Device Name",
+            connection_info.nwDeviceName,
+        );
+        add_field(
+            &mut table,
+            "Network Device MAC",
+            connection_info.nwDeviceMac,
+        );
         add_field(&mut table, "Protocol", connection_info.protocol);
         add_field(&mut table, "Band", connection_info.band);
         add_field(&mut table, "Spatial Stream", connection_info.spatialStream);
@@ -390,34 +398,18 @@ pub fn print_client_detail(response: ClientDetailResponse) {
                 add_field(&mut table, "User ID", node.userId);
                 add_field(&mut table, "Node Type", node.nodeType);
                 add_field(&mut table, "Radio Frequency", node.radioFrequency);
-                add_field(
-                    &mut table,
-                    "Clients",
-                    node.clients.map(|v| v.to_string()),
-                );
-                add_field(
-                    &mut table,
-                    "Count",
-                    node.count.map(|v| v.to_string()),
-                );
+                add_field(&mut table, "Clients", node.clients.map(|v| v.to_string()));
+                add_field(&mut table, "Count", node.count.map(|v| v.to_string()));
                 add_field(
                     &mut table,
                     "Health Score",
                     node.healthScore.map(|v| v.to_string()),
                 );
-                add_field(
-                    &mut table,
-                    "Level",
-                    node.level.map(|v| v.to_string()),
-                );
+                add_field(&mut table, "Level", node.level.map(|v| v.to_string()));
                 add_field(&mut table, "Fabric Group", node.fabricGroup);
                 add_field(&mut table, "Connected Device", node.connectedDevice);
                 if let Some(fabric_roles) = node.fabricRole {
-                    add_field(
-                        &mut table,
-                        "Fabric Roles",
-                        Some(fabric_roles.join(", ")),
-                    );
+                    add_field(&mut table, "Fabric Roles", Some(fabric_roles.join(", ")));
                 }
                 if let Some(ipv6_list) = node.ipv6 {
                     add_field(&mut table, "IPv6", Some(ipv6_list.join(", ")));
@@ -433,10 +425,7 @@ pub fn print_client_detail(response: ClientDetailResponse) {
 
 // Helper function to add a field to the table
 fn add_field(table: &mut Table, field_name: &str, value: Option<String>) {
-    table.add_row(row![
-        field_name,
-        value.unwrap_or_else(|| "N/A".to_string())
-    ]);
+    table.add_row(row![field_name, value.unwrap_or_else(|| "N/A".to_string())]);
 }
 
 pub fn print_issue_list(response: IssueListResponse) {
@@ -455,17 +444,23 @@ pub fn print_issue_list(response: IssueListResponse) {
         ]);
 
         for issue in issues {
-            let last_occurrence = issue.last_occurence_time.map_or("N/A".to_string(), |timestamp| {
-                DateTime::from_timestamp_millis(timestamp)
-                    .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string())
-                    .unwrap_or_else(|| "Invalid Timestamp".to_string())
-            });
+            let last_occurrence =
+                issue
+                    .last_occurence_time
+                    .map_or("N/A".to_string(), |timestamp| {
+                        DateTime::from_timestamp_millis(timestamp)
+                            .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string())
+                            .unwrap_or_else(|| "Invalid Timestamp".to_string())
+                    });
 
             table.add_row(row![
                 issue.issueId.clone().unwrap_or_else(|| "N/A".to_string()),
                 issue.name.clone().unwrap_or_else(|| "N/A".to_string()),
                 issue.deviceId.clone().unwrap_or_else(|| "N/A".to_string()),
-                issue.deviceRole.clone().unwrap_or_else(|| "N/A".to_string()),
+                issue
+                    .deviceRole
+                    .clone()
+                    .unwrap_or_else(|| "N/A".to_string()),
                 issue.clientMac.clone().unwrap_or_else(|| "N/A".to_string()),
                 issue.status.clone().unwrap_or_else(|| "N/A".to_string()),
                 issue.priority.clone().unwrap_or_else(|| "N/A".to_string()),
@@ -485,8 +480,16 @@ pub fn print_ap_config(ap_config: ApConfig) {
     let mut table = Table::new();
     table.add_row(row!["Field", "Value"]);
 
-    add_field(&mut table, "Instance UUID", ap_config.instanceUuid.map(|v| v.to_string()));
-    add_field(&mut table, "Instance ID", ap_config.instanceId.map(|v| v.to_string()));
+    add_field(
+        &mut table,
+        "Instance UUID",
+        ap_config.instanceUuid.map(|v| v.to_string()),
+    );
+    add_field(
+        &mut table,
+        "Instance ID",
+        ap_config.instanceId.map(|v| v.to_string()),
+    );
     add_field(&mut table, "Display Name", ap_config.displayName);
     add_field(&mut table, "Instance Tenant ID", ap_config.instanceTenantId);
     add_field(
@@ -505,9 +508,17 @@ pub fn print_ap_config(ap_config: ApConfig) {
         ap_config._isBeingChanged.map(|v| v.to_string()),
     );
     add_field(&mut table, "Deploy Pending", ap_config.deployPending);
-    add_field(&mut table, "Instance Version", ap_config.instanceVersion.map(|v| v.to_string()));
+    add_field(
+        &mut table,
+        "Instance Version",
+        ap_config.instanceVersion.map(|v| v.to_string()),
+    );
     add_field(&mut table, "Admin Status", ap_config.adminStatus);
-    add_field(&mut table, "AP Height", ap_config.apHeight.map(|v| v.to_string()));
+    add_field(
+        &mut table,
+        "AP Height",
+        ap_config.apHeight.map(|v| v.to_string()),
+    );
     add_field(&mut table, "AP Mode", ap_config.apMode);
     add_field(&mut table, "AP Name", ap_config.apName);
     add_field(&mut table, "Ethernet MAC", ap_config.ethMac);
@@ -520,18 +531,46 @@ pub fn print_ap_config(ap_config: ApConfig) {
     add_field(&mut table, "LED Status", ap_config.ledStatus);
     add_field(&mut table, "Location", ap_config.location);
     add_field(&mut table, "MAC Address", ap_config.macAddress);
-    add_field(&mut table, "Primary Controller Name", ap_config.primaryControllerName);
+    add_field(
+        &mut table,
+        "Primary Controller Name",
+        ap_config.primaryControllerName,
+    );
     add_field(&mut table, "Primary IP Address", ap_config.primaryIpAddress);
-    add_field(&mut table, "Secondary Controller Name", ap_config.secondaryControllerName);
-    add_field(&mut table, "Secondary IP Address", ap_config.secondaryIpAddress);
-    add_field(&mut table, "Tertiary Controller Name", ap_config.tertiaryControllerName);
-    add_field(&mut table, "Tertiary IP Address", ap_config.tertiaryIpAddress);
+    add_field(
+        &mut table,
+        "Secondary Controller Name",
+        ap_config.secondaryControllerName,
+    );
+    add_field(
+        &mut table,
+        "Secondary IP Address",
+        ap_config.secondaryIpAddress,
+    );
+    add_field(
+        &mut table,
+        "Tertiary Controller Name",
+        ap_config.tertiaryControllerName,
+    );
+    add_field(
+        &mut table,
+        "Tertiary IP Address",
+        ap_config.tertiaryIpAddress,
+    );
 
     // Internal Key
     if let Some(internal_key) = ap_config.internalKey {
         add_field(&mut table, "Internal Key - Type", internal_key.type_field);
-        add_field(&mut table, "Internal Key - ID", internal_key.id.map(|v| v.to_string()));
-        add_field(&mut table, "Internal Key - Long Type", internal_key.longType);
+        add_field(
+            &mut table,
+            "Internal Key - ID",
+            internal_key.id.map(|v| v.to_string()),
+        );
+        add_field(
+            &mut table,
+            "Internal Key - Long Type",
+            internal_key.longType,
+        );
         add_field(&mut table, "Internal Key - URL", internal_key.url);
     }
 
@@ -548,7 +587,11 @@ pub fn print_ap_config(ap_config: ApConfig) {
             radio_table.add_row(row!["Field", "Value"]);
 
             add_field(&mut radio_table, "Display Name", radio.displayName.clone());
-            add_field(&mut radio_table, "Instance ID", radio.instanceId.map(|v| v.to_string()));
+            add_field(
+                &mut radio_table,
+                "Instance ID",
+                radio.instanceId.map(|v| v.to_string()),
+            );
             add_field(
                 &mut radio_table,
                 "Ordered List OE Index",
@@ -564,7 +607,11 @@ pub fn print_ap_config(ap_config: ApConfig) {
                 "Is Being Changed",
                 radio._isBeingChanged.map(|v| v.to_string()),
             );
-            add_field(&mut radio_table, "Deploy Pending", radio.deployPending.clone());
+            add_field(
+                &mut radio_table,
+                "Deploy Pending",
+                radio.deployPending.clone(),
+            );
             add_field(
                 &mut radio_table,
                 "Instance Version",
@@ -607,7 +654,11 @@ pub fn print_ap_config(ap_config: ApConfig) {
                 radio.channelWidth.clone(),
             );
             add_field(&mut radio_table, "Clean Air SI", radio.cleanAirSI.clone());
-            add_field(&mut radio_table, "Interface Type", radio.ifType.map(|v| v.to_string()));
+            add_field(
+                &mut radio_table,
+                "Interface Type",
+                radio.ifType.map(|v| v.to_string()),
+            );
             add_field(
                 &mut radio_table,
                 "Interface Type Value",
@@ -635,7 +686,11 @@ pub fn print_ap_config(ap_config: ApConfig) {
                 "Radio Role Assignment",
                 radio.radioRoleAssignment.as_ref().map(|v| v.to_string()),
             );
-            add_field(&mut radio_table, "Slot ID", radio.slotId.map(|v| v.to_string()));
+            add_field(
+                &mut radio_table,
+                "Slot ID",
+                radio.slotId.map(|v| v.to_string()),
+            );
 
             // Internal Key for RadioDTO
             if let Some(radio_internal_key) = &radio.internalKey {
@@ -667,8 +722,6 @@ pub fn print_ap_config(ap_config: ApConfig) {
     }
 }
 
-
-
 pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
     println!("Number of enrichment records: {}", response.0.len());
 
@@ -680,7 +733,11 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
             table.add_row(row!["Field", "Value"]);
 
             add_field(&mut table, "ID", user_details.id);
-            add_field(&mut table, "Connection Status", user_details.connectionStatus);
+            add_field(
+                &mut table,
+                "Connection Status",
+                user_details.connectionStatus,
+            );
             add_field(&mut table, "Host Type", user_details.hostType);
             add_field(&mut table, "User ID", user_details.userId);
             add_field(&mut table, "Host Name", user_details.hostName);
@@ -696,7 +753,11 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
                         Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
                     );
                 } else {
-                    add_field(&mut table, "Last Updated", Some("Invalid Timestamp".to_string()));
+                    add_field(
+                        &mut table,
+                        "Last Updated",
+                        Some("Invalid Timestamp".to_string()),
+                    );
                 }
             } else {
                 add_field(&mut table, "Last Updated", None);
@@ -706,8 +767,16 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
             if let Some(health_scores) = user_details.healthScore {
                 for (i, hs) in health_scores.iter().enumerate() {
                     let prefix = format!("Health Score [{}]", i + 1);
-                    add_field(&mut table, &format!("{} - Health Type", prefix), hs.healthType.clone());
-                    add_field(&mut table, &format!("{} - Reason", prefix), hs.reason.clone());
+                    add_field(
+                        &mut table,
+                        &format!("{} - Health Type", prefix),
+                        hs.healthType.clone(),
+                    );
+                    add_field(
+                        &mut table,
+                        &format!("{} - Reason", prefix),
+                        hs.reason.clone(),
+                    );
                     add_field(
                         &mut table,
                         &format!("{} - Score", prefix),
@@ -740,7 +809,11 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
 
             add_field(&mut table, "SSID", user_details.ssid);
             add_field(&mut table, "Location", user_details.location);
-            add_field(&mut table, "Client Connection", user_details.clientConnection);
+            add_field(
+                &mut table,
+                "Client Connection",
+                user_details.clientConnection,
+            );
 
             // Handling issueCount that can be a string or a number
             match user_details.issueCount {
@@ -804,13 +877,33 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
                 let mut table = Table::new();
                 table.add_row(row!["Field", "Value"]);
 
-                add_field(&mut table, "Average Run Duration", onboarding.averageRunDuration);
+                add_field(
+                    &mut table,
+                    "Average Run Duration",
+                    onboarding.averageRunDuration,
+                );
                 add_field(&mut table, "Max Run Duration", onboarding.maxRunDuration);
-                add_field(&mut table, "Average Assoc Duration", onboarding.averageAssocDuration);
-                add_field(&mut table, "Max Assoc Duration", onboarding.maxAssocDuration);
-                add_field(&mut table, "Average Auth Duration", onboarding.averageAuthDuration);
+                add_field(
+                    &mut table,
+                    "Average Assoc Duration",
+                    onboarding.averageAssocDuration,
+                );
+                add_field(
+                    &mut table,
+                    "Max Assoc Duration",
+                    onboarding.maxAssocDuration,
+                );
+                add_field(
+                    &mut table,
+                    "Average Auth Duration",
+                    onboarding.averageAuthDuration,
+                );
                 add_field(&mut table, "Max Auth Duration", onboarding.maxAuthDuration);
-                add_field(&mut table, "Average DHCP Duration", onboarding.averageDhcpDuration);
+                add_field(
+                    &mut table,
+                    "Average DHCP Duration",
+                    onboarding.averageDhcpDuration,
+                );
                 add_field(&mut table, "Max DHCP Duration", onboarding.maxDhcpDuration);
                 add_field(&mut table, "AAA Server IP", onboarding.aaaServerIp);
                 add_field(&mut table, "DHCP Server IP", onboarding.dhcpServerIp);
@@ -824,7 +917,11 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
                             Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
                         );
                     } else {
-                        add_field(&mut table, "Auth Done Time", Some("Invalid Timestamp".to_string()));
+                        add_field(
+                            &mut table,
+                            "Auth Done Time",
+                            Some("Invalid Timestamp".to_string()),
+                        );
                     }
                 }
 
@@ -836,7 +933,11 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
                             Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
                         );
                     } else {
-                        add_field(&mut table, "Assoc Done Time", Some("Invalid Timestamp".to_string()));
+                        add_field(
+                            &mut table,
+                            "Assoc Done Time",
+                            Some("Invalid Timestamp".to_string()),
+                        );
                     }
                 }
 
@@ -848,13 +949,21 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
                             Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
                         );
                     } else {
-                        add_field(&mut table, "DHCP Done Time", Some("Invalid Timestamp".to_string()));
+                        add_field(
+                            &mut table,
+                            "DHCP Done Time",
+                            Some("Invalid Timestamp".to_string()),
+                        );
                     }
                 }
 
                 // Handle `latestRootCauseList`
                 if let Some(root_causes) = onboarding.latestRootCauseList {
-                    add_field(&mut table, "Latest Root Causes", Some(root_causes.join(", ")));
+                    add_field(
+                        &mut table,
+                        "Latest Root Causes",
+                        Some(root_causes.join(", ")),
+                    );
                 }
 
                 table.printstd();
@@ -907,7 +1016,11 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
                         "Associated WLC IP",
                         device_details.associatedWlcIp.clone(),
                     );
-                    add_field(&mut table, "Boot Date Time", device_details.bootDateTime.clone());
+                    add_field(
+                        &mut table,
+                        "Boot Date Time",
+                        device_details.bootDateTime.clone(),
+                    );
                     add_field(
                         &mut table,
                         "Collection Status",
@@ -934,9 +1047,17 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
                     add_field(&mut table, "Issue Source", issue.issueSource.clone());
                     add_field(&mut table, "Issue Category", issue.issueCategory.clone());
                     add_field(&mut table, "Issue Name", issue.issueName.clone());
-                    add_field(&mut table, "Issue Description", issue.issueDescription.clone());
+                    add_field(
+                        &mut table,
+                        "Issue Description",
+                        issue.issueDescription.clone(),
+                    );
                     add_field(&mut table, "Issue Entity", issue.issueEntity.clone());
-                    add_field(&mut table, "Issue Entity Value", issue.issueEntityValue.clone());
+                    add_field(
+                        &mut table,
+                        "Issue Entity Value",
+                        issue.issueEntityValue.clone(),
+                    );
                     add_field(&mut table, "Issue Severity", issue.issueSeverity.clone());
                     add_field(&mut table, "Issue Priority", issue.issuePriority.clone());
                     add_field(&mut table, "Issue Summary", issue.issueSummary.clone());
@@ -948,7 +1069,11 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
                                 Some(datetime.format("%Y-%m-%d %H:%M:%S").to_string()),
                             );
                         } else {
-                            add_field(&mut table, "Issue Timestamp", Some("Invalid Timestamp".to_string()));
+                            add_field(
+                                &mut table,
+                                "Issue Timestamp",
+                                Some("Invalid Timestamp".to_string()),
+                            );
                         }
                     } else {
                         add_field(&mut table, "Issue Timestamp", None);
