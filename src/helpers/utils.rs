@@ -419,7 +419,6 @@ pub fn print_client_detail(response: ClientDetailResponse) {
             }
         }
 
-        // Similarly, you can display links if needed
     }
 }
 
@@ -577,7 +576,6 @@ pub fn print_ap_config(ap_config: ApConfig) {
     // Display the table
     table.printstd();
 
-    // Mesh DTOs - Since the schema shows as an array of empty objects, we can skip or handle as needed.
 
     // Radio DTOs
     if let Some(radio_dtos) = ap_config.radioDTOs {
