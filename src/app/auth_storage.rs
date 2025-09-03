@@ -9,6 +9,7 @@ use rusqlite::{Connection, params, OpenFlags};
 use std::path::Path;
 use std::sync::Mutex;
 use std::process::Command;
+use std::fs;
 
 const NONCE_SIZE: usize = 12;
 const SALT_SIZE: usize = 32;
