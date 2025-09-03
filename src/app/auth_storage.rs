@@ -77,7 +77,7 @@ impl AuthStorage {
                 return Err(anyhow!("Could not read machine-id from either /etc/machine-id or /var/lib/dbus/machine-id"));
             };
             
-            Ok(machine_id.trim().into_bytes())
+            Ok(machine_id.trim().as_bytes().to_vec())
         }
         
         #[cfg(target_os = "windows")]

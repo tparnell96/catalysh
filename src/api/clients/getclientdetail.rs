@@ -133,7 +133,7 @@ pub struct ClientDetail {
 pub struct HealthScore {
     pub healthType: Option<String>,
     pub reason: Option<String>,
-    pub score: Option<i32>,
+    pub score: Option<f32>,
 }
 
 #[derive(Debug, Deserialize)]
