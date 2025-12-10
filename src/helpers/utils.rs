@@ -418,7 +418,6 @@ pub fn print_client_detail(response: ClientDetailResponse) {
                 table.printstd();
             }
         }
-
     }
 }
 
@@ -575,7 +574,6 @@ pub fn print_ap_config(ap_config: ApConfig) {
 
     // Display the table
     table.printstd();
-
 
     // Radio DTOs
     if let Some(radio_dtos) = ap_config.radioDTOs {

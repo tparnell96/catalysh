@@ -1,7 +1,7 @@
 // src/api/issues/getissuelist.rs
 
-use crate::app::config::Config;
 use crate::api::authentication::auth::Token;
+use crate::app::config::Config;
 use anyhow::{anyhow, Result};
 use reqwest::Client;
 use serde::Deserialize;
@@ -53,10 +53,7 @@ pub async fn get_issue_list(
         .await?;
 
     if !resp.status().is_success() {
-        return Err(anyhow!(
-            "Failed to retrieve issue list: {}",
-            resp.status()
-        ));
+        return Err(anyhow!("Failed to retrieve issue list: {}", resp.status()));
     }
 
     let issue_list_response = resp.json::<IssueListResponse>().await?;

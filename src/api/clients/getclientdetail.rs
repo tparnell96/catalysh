@@ -1,7 +1,7 @@
 // src/api/clients/getclientdetail.rs
 
-use crate::app::config::Config;
 use crate::api::authentication::auth::Token;
+use crate::app::config::Config;
 use anyhow::{anyhow, Result};
 use reqwest::Client;
 use serde::Deserialize;
@@ -166,9 +166,9 @@ pub struct Onboarding {
     pub maxDhcpDuration: Option<String>,
     pub aaaServerIp: Option<String>,
     pub dhcpServerIp: Option<String>,
-    pub authDoneTime: Option<u64>,   // Changed from Option<String> to Option<u64>
-    pub assocDoneTime: Option<u64>,  // Changed from Option<String> to Option<u64>
-    pub dhcpDoneTime: Option<u64>,   // Changed from Option<String> to Option<u64>
+    pub authDoneTime: Option<u64>, // Changed from Option<String> to Option<u64>
+    pub assocDoneTime: Option<u64>, // Changed from Option<String> to Option<u64>
+    pub dhcpDoneTime: Option<u64>, // Changed from Option<String> to Option<u64>
     pub assocRootcauseList: Option<Vec<String>>,
     pub aaaRootcauseList: Option<Vec<String>>,
     pub dhcpRootcauseList: Option<Vec<String>>,

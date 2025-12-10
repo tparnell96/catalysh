@@ -1,10 +1,10 @@
 // src/helpers/command_utils.rs
 // Common utilities for command handlers
 
-use log::error;
-use crate::app::config::{self, Config};
 use crate::api::authentication::auth::{self, Token};
+use crate::app::config::{self, Config};
 use anyhow::{Context, Result};
+use log::error;
 
 /// Context for executing commands that need API access
 pub struct CommandContext {
@@ -15,8 +15,7 @@ pub struct CommandContext {
 impl CommandContext {
     /// Create a new command context with authentication
     pub async fn new() -> Result<Self> {
-        let config = config::load_config()
-            .context("Failed to load configuration")?;
+        let config = config::load_config().context("Failed to load configuration")?;
 
         let token = auth::authenticate(&config)
             .await

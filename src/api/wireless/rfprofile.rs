@@ -1,5 +1,5 @@
-use crate::app::config::Config;
 use crate::api::authentication::auth;
+use crate::app::config::Config;
 use anyhow::Result;
 use log::debug;
 use serde::{Deserialize, Serialize};
@@ -42,7 +42,7 @@ pub struct RFProfile {
     pub enable_radio_type_a: Option<bool>,
     #[serde(rename = "enableRadioTypeB")]
     pub enable_radio_type_b: Option<bool>,
-    #[serde(rename = "enableRadioTypeC")]  
+    #[serde(rename = "enableRadioTypeC")]
     pub enable_radio_type_c: Option<bool>,
     #[serde(rename = "channelWidth")]
     pub channel_width: Option<String>,

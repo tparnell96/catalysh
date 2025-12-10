@@ -1,13 +1,13 @@
+mod api;
 mod app;
 mod helpers;
-mod api;
 
 mod commands;
 mod handlers;
 
-use commands::{Cli, route_command};
 use clap_repl::reedline::{DefaultPrompt, DefaultPromptSegment, FileBackedHistory};
 use clap_repl::ClapEditor;
+use commands::{route_command, Cli};
 use dirs::home_dir;
 use std::fs;
 use std::path::PathBuf;
@@ -57,4 +57,3 @@ fn main() {
         route_command(cli.command);
     });
 }
-

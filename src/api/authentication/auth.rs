@@ -21,8 +21,6 @@ pub struct Token {
     pub expires_at: u64,
 }
 
-
-
 pub async fn authenticate(config: &Config) -> Result<Token> {
     // Check for existing token
     if let Some(token) = load_token()? {

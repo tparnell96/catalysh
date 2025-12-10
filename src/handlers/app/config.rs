@@ -1,6 +1,6 @@
-use log::error;
 use crate::app::config;
 use crate::commands::app::config::{AppConfigCommands, SetVerifySslAction};
+use log::error;
 
 pub fn handle_app_config_command(subcommand: AppConfigCommands) {
     match subcommand {
@@ -11,21 +11,19 @@ pub fn handle_app_config_command(subcommand: AppConfigCommands) {
                 println!("Configuration reset successfully.");
             }
         }
-        AppConfigCommands::Show => {
-            match config::load_config() {
-                Ok(config) => {
-                    println!("Current Configuration:");
-                    println!("---------------------");
-                    println!("DNA Center URL: {}", config.dnac_url);
-                    println!("Username: {}", config.username);
-                    println!("Password: [hidden]");
-                    println!("Verify SSL: {}", config.verify_ssl);
-                }
-                Err(e) => {
-                    error!("Failed to read configuration: {}", e);
-                }
+        AppConfigCommands::Show => match config::load_config() {
+            Ok(config) => {
+                println!("Current Configuration:");
+                println!("---------------------");
+                println!("DNA Center URL: {}", config.dnac_url);
+                println!("Username: {}", config.username);
+                println!("Password: [hidden]");
+                println!("Verify SSL: {}", config.verify_ssl);
             }
-        }
+            Err(e) => {
+                error!("Failed to read configuration: {}", e);
+            }
+        },
         AppConfigCommands::SetUrl { url } => {
             if let Err(e) = config::update_dnac_url(url) {
                 error!("Failed to update DNA Center URL: {}", e);

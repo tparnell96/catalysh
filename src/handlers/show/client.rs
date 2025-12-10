@@ -1,8 +1,8 @@
 // src/handlers/show/client.rs
 
-use crate::commands::show::client::ClientCommands;
 use crate::api::clients::{getclientdetail, getclientenrichment};
-use crate::helpers::{utils, command_utils};
+use crate::commands::show::client::ClientCommands;
+use crate::helpers::{command_utils, utils};
 use log::error;
 
 pub fn handle_client_command(subcommand: ClientCommands) {
@@ -10,7 +10,9 @@ pub fn handle_client_command(subcommand: ClientCommands) {
         match subcommand {
             ClientCommands::Detail { mac_address } => {
                 // Fetch client details
-                match getclientdetail::get_client_detail(&ctx.config, &ctx.token, &mac_address).await {
+                match getclientdetail::get_client_detail(&ctx.config, &ctx.token, &mac_address)
+                    .await
+                {
                     Ok(client_detail_response) => {
                         utils::print_client_detail(client_detail_response);
                     }

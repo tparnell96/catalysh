@@ -1,15 +1,18 @@
 // src/handlers/show/issue.rs
 
-use crate::commands::show::issue::{IssueCommands, SearchOption};
 use crate::api::issues::getissuelist;
-use crate::helpers::{utils, command_utils};
+use crate::commands::show::issue::{IssueCommands, SearchOption};
+use crate::helpers::{command_utils, utils};
 use log::error;
 use std::collections::HashMap;
 
 pub fn handle_issue_command(subcommand: IssueCommands) {
     command_utils::execute_with_context(|ctx| async move {
         match subcommand {
-            IssueCommands::List { search_option, search_input } => {
+            IssueCommands::List {
+                search_option,
+                search_input,
+            } => {
                 // Prepare search parameters
                 let mut search_params = HashMap::new();
 

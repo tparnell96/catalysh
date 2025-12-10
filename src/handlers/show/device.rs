@@ -1,11 +1,11 @@
 // src/handlers/show/device.rs
 
-use log::error;
-use crate::helpers::{utils, command_utils};
 use crate::api::devices::{devicedetailenrichment, getdevicelist};
 use crate::commands::show::device::{
     DeviceCommands, DeviceDetailFilter, DeviceEnrichmentFilter, DeviceListFilter,
 };
+use crate::helpers::{command_utils, utils};
+use log::error;
 
 pub fn handle_device_command(subcommand: DeviceCommands) {
     command_utils::execute_with_context(|ctx| async move {
@@ -84,11 +84,11 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                             DeviceDetailFilter::Mac { ref mac_address } => devices
                                 .into_iter()
                                 .find(|device| device.mac_address.as_deref() == Some(mac_address)),
-                            DeviceDetailFilter::Ip { ref ip_address } => devices
-                                .into_iter()
-                                .find(|device| {
+                            DeviceDetailFilter::Ip { ref ip_address } => {
+                                devices.into_iter().find(|device| {
                                     device.management_ip_address.as_deref() == Some(ip_address)
-                                }),
+                                })
+                            }
                         };
 
                         match device_option {

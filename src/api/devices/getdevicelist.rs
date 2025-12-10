@@ -16,7 +16,7 @@ pub struct AllDevices {
     pub snmp_location: Option<String>,
     pub tag_count: Option<String>,
     pub tunnel_udp_port: Option<serde_json::Value>, // Use `serde_json::Value` for fields with undefined schema
-    pub uptime_seconds: Option<i64>, // Assuming "integer" corresponds to i64
+    pub uptime_seconds: Option<i64>,                // Assuming "integer" corresponds to i64
     pub waas_device_mode: Option<serde_json::Value>,
     pub serial_number: Option<String>,
     pub last_update_time: Option<i64>,
@@ -68,7 +68,7 @@ pub async fn get_all_devices(config: &Config, token: &Token) -> Result<Vec<AllDe
 
     let mut all_devices: Vec<AllDevices> = Vec::new();
     let mut offset = 1;
-    let limit = 500;    // Set the limit as per API maximum
+    let limit = 500; // Set the limit as per API maximum
 
     loop {
         let devices_url = format!(
@@ -120,10 +120,7 @@ async fn send_authenticated_request<T: serde::de::DeserializeOwned>(
         }
 
         if !resp.status().is_success() {
-            return Err(anyhow!(
-                "Failed to complete request: {}",
-                resp.status()
-            ));
+            return Err(anyhow!("Failed to complete request: {}", resp.status()));
         }
 
         // Deserialize and return the response

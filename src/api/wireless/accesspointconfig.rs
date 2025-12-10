@@ -1,7 +1,7 @@
 // src/api/wireless/getaccesspointconfig.rs
 
-use crate::app::config::Config;
 use crate::api::authentication::auth::Token;
+use crate::app::config::Config;
 use anyhow::{anyhow, Result};
 use reqwest::Client;
 use serde::Deserialize;
@@ -100,16 +100,15 @@ pub struct InternalKey {
     pub url: Option<String>,
 }
 
-pub async fn get_ap_config(
-    config: &Config,
-    token: &Token,
-    mac_address: &str,
-) -> Result<ApConfig> {
+pub async fn get_ap_config(config: &Config, token: &Token, mac_address: &str) -> Result<ApConfig> {
     let client = Client::builder()
         .danger_accept_invalid_certs(!config.verify_ssl)
         .build()?;
 
-    let url = format!("{}/dna/intent/api/v1/wireless/accesspoint-configuration/summary", config.dnac_url);
+    let url = format!(
+        "{}/dna/intent/api/v1/wireless/accesspoint-configuration/summary",
+        config.dnac_url
+    );
 
     let resp = client
         .get(&url)
@@ -119,10 +118,7 @@ pub async fn get_ap_config(
         .await?;
 
     if !resp.status().is_success() {
-        return Err(anyhow!(
-            "Failed to retrieve AP config: {}",
-            resp.status()
-        ));
+        return Err(anyhow!("Failed to retrieve AP config: {}", resp.status()));
     }
 
     let ap_config = resp.json::<ApConfig>().await?;

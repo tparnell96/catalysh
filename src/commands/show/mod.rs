@@ -1,7 +1,8 @@
-pub mod device;
-pub mod client;
-pub mod issue;
 pub mod ap;
+pub mod client;
+pub mod device;
+pub mod issue;
+pub mod site;
 
 use clap::Subcommand;
 
@@ -27,5 +28,9 @@ pub enum ShowCommands {
         #[command(subcommand)]
         subcommand: ap::ApCommands,
     },
+    /// Show site information
+    Site {
+        #[command(subcommand)]
+        subcommand: site::SiteCommands,
+    },
 }
-

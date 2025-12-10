@@ -27,4 +27,3 @@ pub enum SetVerifySslAction {
     /// Disable SSL verification  
     Disable,
 }
-
