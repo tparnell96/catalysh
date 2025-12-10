@@ -1,35 +1,13 @@
 // src/handlers/show/issue.rs
 
 use crate::commands::show::issue::{IssueCommands, SearchOption};
-use crate::app::config;
-use crate::api::authentication::auth;
 use crate::api::issues::getissuelist;
-use crate::helpers::utils;
+use crate::helpers::{utils, command_utils};
 use log::error;
 use std::collections::HashMap;
 
 pub fn handle_issue_command(subcommand: IssueCommands) {
-    // Create a Tokio runtime
-    let runtime = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
-    runtime.block_on(async {
-        // Load configuration
-        let config = match config::load_config() {
-            Ok(cfg) => cfg,
-            Err(e) => {
-                error!("Failed to load configuration: {}", e);
-                return;
-            }
-        };
-
-        // Authenticate and get token
-        let token = match auth::authenticate(&config).await {
-            Ok(t) => t,
-            Err(e) => {
-                error!("Authentication failed: {}", e);
-                return;
-            }
-        };
-
+    command_utils::execute_with_context(|ctx| async move {
         match subcommand {
             IssueCommands::List { search_option, search_input } => {
                 // Prepare search parameters
@@ -65,12 +43,12 @@ pub fn handle_issue_command(subcommand: IssueCommands) {
                         }
                     } else {
                         error!("Search input is required when a search option is specified.");
-                        return;
+                        return Ok(());
                     }
                 }
 
                 // Fetch issue list
-                match getissuelist::get_issue_list(&config, &token, &search_params).await {
+                match getissuelist::get_issue_list(&ctx.config, &ctx.token, &search_params).await {
                     Ok(issue_list_response) => {
                         utils::print_issue_list(issue_list_response);
                     }
@@ -80,5 +58,6 @@ pub fn handle_issue_command(subcommand: IssueCommands) {
                 }
             }
         }
+        Ok(())
     });
 }
