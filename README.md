@@ -12,16 +12,36 @@ A Rust-based CLI shell for interacting with Cisco Catalyst Center through its AP
 
 ## Installation
 
-1. Clone the repository:
+### Option 1: Install from crates.io (Recommended)
+
+The easiest way to install catalysh is via cargo:
+
 ```bash
-git clone https://github.com/yourusername/catalysh.git
-cd catalysh
+cargo install catalysh
 ```
 
-2. Build and run using Cargo:
+This will download, compile, and install the latest stable version of catalysh.
+
+### Option 2: Install from Source
+
+If you prefer to build from source:
+
 ```bash
-cargo build --release
-cargo run
+git clone https://github.com/hexabyte8/catalysh.git
+cd catalysh
+cargo install --path .
+```
+
+### Option 3: Download Pre-built Binaries
+
+Pre-built binaries for Linux, macOS, and Windows are available on the [GitHub Releases](https://github.com/hexabyte8/catalysh/releases) page. Download the appropriate binary for your platform, make it executable (on Unix systems), and add it to your PATH.
+
+### Running catalysh
+
+Once installed via cargo, simply run:
+
+```bash
+catalysh
 ```
 
 ## Initial Setup
