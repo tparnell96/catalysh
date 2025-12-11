@@ -1,38 +1,18 @@
 // src/handlers/show/device.rs
 
-use log::error;
-use crate::app::config;
-use crate::helpers::utils;
-use crate::api::authentication::auth;
 use crate::api::devices::{devicedetailenrichment, getdevicelist};
 use crate::commands::show::device::{
     DeviceCommands, DeviceDetailFilter, DeviceEnrichmentFilter, DeviceListFilter,
 };
+use crate::helpers::{command_utils, utils};
+use log::error;
 
 pub fn handle_device_command(subcommand: DeviceCommands) {
-    // Create a Tokio runtime
-    let runtime = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
-    runtime.block_on(async {
-        let config = match config::load_config() {
-            Ok(cfg) => cfg,
-            Err(e) => {
-                error!("Failed to load configuration: {}", e);
-                return;
-            }
-        };
-
-        let token = match auth::authenticate(&config).await {
-            Ok(t) => t,
-            Err(e) => {
-                error!("Authentication failed: {}", e);
-                return;
-            }
-        };
-
+    command_utils::execute_with_context(|ctx| async move {
         match subcommand {
             DeviceCommands::List { filter } => {
                 // Fetch all devices
-                match getdevicelist::get_all_devices(&config, &token).await {
+                match getdevicelist::get_all_devices(&ctx.config, &ctx.token).await {
                     Ok(devices) => {
                         // Apply filter if necessary
                         let filtered_devices = match filter {
@@ -94,7 +74,7 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
             }
             DeviceCommands::Detail { filter } => {
                 // Fetch all devices
-                match getdevicelist::get_all_devices(&config, &token).await {
+                match getdevicelist::get_all_devices(&ctx.config, &ctx.token).await {
                     Ok(devices) => {
                         // Find the device matching the filter
                         let device_option = match filter {
@@ -104,11 +84,11 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                             DeviceDetailFilter::Mac { ref mac_address } => devices
                                 .into_iter()
                                 .find(|device| device.mac_address.as_deref() == Some(mac_address)),
-                            DeviceDetailFilter::Ip { ref ip_address } => devices
-                                .into_iter()
-                                .find(|device| {
+                            DeviceDetailFilter::Ip { ref ip_address } => {
+                                devices.into_iter().find(|device| {
                                     device.management_ip_address.as_deref() == Some(ip_address)
-                                }),
+                                })
+                            }
                         };
 
                         match device_option {
@@ -124,8 +104,8 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                 match filter {
                     DeviceEnrichmentFilter::Mac { mac_address } => {
                         match devicedetailenrichment::get_device_enrichment(
-                            &config,
-                            &token,
+                            &ctx.config,
+                            &ctx.token,
                             "mac_address",
                             &mac_address,
                         )
@@ -139,8 +119,8 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                     }
                     DeviceEnrichmentFilter::Ip { ip_address } => {
                         match devicedetailenrichment::get_device_enrichment(
-                            &config,
-                            &token,
+                            &ctx.config,
+                            &ctx.token,
                             "ip_address",
                             &ip_address,
                         )
@@ -155,5 +135,6 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                 }
             }
         }
+        Ok(())
     });
 }

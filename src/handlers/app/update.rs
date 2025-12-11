@@ -13,7 +13,8 @@ pub fn handle_update_command() {
 
     #[cfg(target_os = "windows")]
     {
-        println!("Please download and run the latest `windows_installer.exe` to update the application.");
+        println!(
+            "Please download and run the latest `windows_installer.exe` to update the application."
+        );
     }
 }
-

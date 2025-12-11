@@ -40,19 +40,24 @@ On first run, catalysh will guide you through the setup process:
 - `show` - Display information about network devices and configurations
 - `config` - Enter configuration mode
 - `app` - Application-specific commands
+- `clear` - Clear the screen
 - `exit` - Exit the application
 - `help` - Display help information
 
 ### Show Commands
 
-- `show ap rf-profile` - Display AP RF profiles
-- `show device` - List network devices
+- `show ap` - Display AP information (config, rf-profile)
+- `show client` - Display client information (detail, enrichment)
+- `show device` - Display device information (list, detail, enrichment)
+- `show issue` - Display issues in Catalyst Center
+- `show site` - Display site information
 - Additional show commands available via `show -help`
 
-### App Configuration
+### App Commands
 
-- `app config reset` - Reset application configuration
-- `app config show` - Display current configuration
+- `app config` - Manage application configuration (reset, show, set-url, set-verify-ssl, reset-credentials)
+- `app version` - Display application version
+- `app update` - Update to the latest release
 
 ### Command Help
 
@@ -60,7 +65,20 @@ Get help for any command by adding `-help`:
 ```bash
 show device -help
 config -help
+app -help
 ```
+
+## For Developers
+
+### Adding New Commands
+
+Adding new commands is now easier than ever! See [docs/ADDING_COMMANDS.md](docs/ADDING_COMMANDS.md) for a comprehensive guide.
+
+Key features of the refactored command system:
+- **No boilerplate**: Common operations (auth, config) are handled automatically
+- **Consistent patterns**: All commands follow the same structure
+- **Easy to test**: Modular design makes testing straightforward
+- **Well documented**: Comprehensive guide with examples
 
 ## Data Storage and Security
 

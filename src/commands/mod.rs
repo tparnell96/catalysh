@@ -1,13 +1,18 @@
-pub mod show;
-pub mod config;
 pub mod app;
+pub mod config;
+pub mod show;
 
+use crate::handlers::{
+    clear_screen, handle_app_command, handle_config_command, handle_show_command,
+};
 use clap::{Parser, Subcommand};
 use log::error;
-use crate::handlers::{handle_show_command, handle_config_command, handle_app_command, clear_screen};
 
 #[derive(Debug, Parser)]
-#[command(name = "catalysh", about = "A command line interface for Cisco Catalyst Center")]
+#[command(
+    name = "catalysh",
+    about = "A command line interface for Cisco Catalyst Center"
+)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,

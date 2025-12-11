@@ -1,7 +1,7 @@
 // src/api/clients/getclientenrichment.rs
 
-use crate::app::config::Config;
 use crate::api::authentication::auth::Token;
+use crate::app::config::Config;
 use anyhow::{anyhow, Result};
 use reqwest::Client;
 use serde::Deserialize;
@@ -322,7 +322,10 @@ pub async fn get_client_enrichment(
         .danger_accept_invalid_certs(!config.verify_ssl)
         .build()?;
 
-    let url = format!("{}/dna/intent/api/v1/client-enrichment-details", config.dnac_url);
+    let url = format!(
+        "{}/dna/intent/api/v1/client-enrichment-details",
+        config.dnac_url
+    );
 
     // Build the request with headers
     let mut req_builder = client

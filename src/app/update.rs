@@ -1,21 +1,26 @@
-use std::fs;
-use std::env;
 use reqwest;
 use serde_json::Value;
+use std::env;
+use std::fs;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt; // Import PermissionsExt for Unix systems
 #[allow(dead_code)]
 pub fn update_to_latest() -> Result<(), Box<dyn std::error::Error>> {
     let repo_url = "https://api.github.com/repos/tparnell96/catalysh/releases/latest";
     let client = reqwest::blocking::Client::new();
-    let response = client.get(repo_url).header("User-Agent", "Rust-App").send()?;
+    let response = client
+        .get(repo_url)
+        .header("User-Agent", "Rust-App")
+        .send()?;
 
     if !response.status().is_success() {
         return Err("Failed to fetch release information.".into());
     }
 
     let json: Value = response.json()?;
-    let assets = json["assets"].as_array().ok_or("Invalid assets structure")?;
+    let assets = json["assets"]
+        .as_array()
+        .ok_or("Invalid assets structure")?;
     let platform = if cfg!(target_os = "macos") {
         "macos"
     } else {
@@ -30,12 +35,17 @@ pub fn update_to_latest() -> Result<(), Box<dyn std::error::Error>> {
         "unknown"
     };
 
-    let asset = assets.iter().find(|asset| {
-        let name = asset["name"].as_str().unwrap_or("");
-        name.contains(platform) && name.contains(architecture)
-    }).ok_or("No compatible asset found")?;
+    let asset = assets
+        .iter()
+        .find(|asset| {
+            let name = asset["name"].as_str().unwrap_or("");
+            name.contains(platform) && name.contains(architecture)
+        })
+        .ok_or("No compatible asset found")?;
 
-    let download_url = asset["browser_download_url"].as_str().ok_or("Invalid download URL")?;
+    let download_url = asset["browser_download_url"]
+        .as_str()
+        .ok_or("Invalid download URL")?;
     let temp_file = env::temp_dir().join(asset["name"].as_str().unwrap_or("app_update"));
 
     println!("Downloading update...");
@@ -66,4 +76,3 @@ pub fn update_to_latest() -> Result<(), Box<dyn std::error::Error>> {
     println!("Update successfully applied to ~/.local/bin/catalysh.");
     Ok(())
 }
-

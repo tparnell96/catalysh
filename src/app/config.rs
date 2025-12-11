@@ -96,27 +96,27 @@ pub fn reset_credentials() -> Result<()> {
         fs::remove_file(credentials_db_path)?;
         println!("Previous credentials have been removed.");
     }
-    
+
     // Load existing config
     let mut config = load_config()?;
-    
+
     // Prompt for username
     print!("Enter username: ");
     io::stdout().flush()?;
     let mut username = String::new();
     io::stdin().read_line(&mut username)?;
     config.username = username.trim().to_string();
-    
+
     // Save the new username to config
     save_config(&config)?;
-    
+
     // Prompt for new password
     let password = rpassword::prompt_password("Enter new password: ")?;
-    
+
     // Store new credentials
     let auth_storage = crate::app::auth_storage::AuthStorage::new(get_credentials_db_path())?;
     auth_storage.store_credentials(&config.username, &password)?;
-    
+
     println!("New credentials have been stored.");
     Ok(())
 }
@@ -149,7 +149,7 @@ fn setup_config() -> Result<Config> {
     // Store credentials with explicit username match
     match auth_storage.store_credentials(&username, &password) {
         Ok(_) => println!("Credentials stored securely."),
-        Err(e) => return Err(anyhow::anyhow!("Failed to store credentials: {}", e))
+        Err(e) => return Err(anyhow::anyhow!("Failed to store credentials: {}", e)),
     }
     println!("Configuration complete. Credentials stored securely.");
 
@@ -163,4 +163,3 @@ fn save_config(config: &Config) -> Result<()> {
     fs::write(config_path, contents)?;
     Ok(())
 }
-
