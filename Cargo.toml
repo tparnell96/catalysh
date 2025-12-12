@@ -10,7 +10,7 @@ readme = "README.md"
 documentation = "https://github.com/tparnell96/catalysh"
 keywords = ["networking", "cisco", "dnac", "catalyst", "cli"]
 categories = ["command-line-utilities"]
-exclude = ["/target", "/Cargo.lock", "/.github/workflows/rust.yml"]
+exclude = ["/target", "/Cargo.lock", "/.github"]
 
 [dependencies]
 aes-gcm = "0.10.3"

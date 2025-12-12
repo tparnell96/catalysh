@@ -1,6 +1,6 @@
+mod api;
 mod app;
 mod helpers;
-mod api;
 
 mod commands;
 mod handlers;
