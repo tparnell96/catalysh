@@ -1,27 +1,40 @@
 use anyhow::Result;
 use rpassword;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use std::fs;
 use std::io::{self, Write};
 use std::path::PathBuf;
 
 use dirs::config_dir;
 
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum CredentialMode {
+    /// Credentials are encrypted and stored on-device; no login prompt on each launch.
+    #[default]
+    StoreOnDevice,
+    /// Credentials are never persisted; the user is prompted for a password on each
+    /// launch (or whenever the cached token has expired).
+    SessionOnly,
+}
+
+impl fmt::Display for CredentialMode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            CredentialMode::StoreOnDevice => write!(f, "store-on-device"),
+            CredentialMode::SessionOnly => write!(f, "session-only"),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Config {
     pub dnac_url: String,
     pub username: String,
     pub verify_ssl: bool,
-}
-
-impl Config {
-    pub fn new(dnac_url: String, username: String, verify_ssl: bool) -> Self {
-        Self {
-            dnac_url,
-            username,
-            verify_ssl,
-        }
-    }
+    #[serde(default)]
+    pub credential_mode: CredentialMode,
 }
 
 pub fn get_config_path() -> PathBuf {
@@ -89,34 +102,53 @@ pub fn update_verify_ssl(verify: bool) -> Result<()> {
     Ok(())
 }
 
+/// Update the credential storage mode
+pub fn update_credential_mode(mode: CredentialMode) -> Result<()> {
+    let mut config = load_config()?;
+
+    if mode == CredentialMode::SessionOnly && config.credential_mode == CredentialMode::StoreOnDevice {
+        // Wipe any stored credentials so they are not left on disk
+        let db_path = get_credentials_db_path();
+        if db_path.exists() {
+            fs::remove_file(&db_path)?;
+            println!("Stored credentials removed from disk.");
+        }
+    }
+
+    config.credential_mode = mode;
+    save_config(&config)?;
+    println!("Credential mode updated to: {}", config.credential_mode);
+    Ok(())
+}
+
 /// Reset only the stored credentials while keeping other settings
 pub fn reset_credentials() -> Result<()> {
+    let config = load_config()?;
+
     let credentials_db_path = get_credentials_db_path();
     if credentials_db_path.exists() {
-        fs::remove_file(credentials_db_path)?;
+        fs::remove_file(&credentials_db_path)?;
         println!("Previous credentials have been removed.");
     }
 
-    // Load existing config
-    let mut config = load_config()?;
+    if config.credential_mode == CredentialMode::SessionOnly {
+        println!("Credential mode is session-only; no credentials will be stored.");
+        return Ok(());
+    }
 
-    // Prompt for username
+    // Prompt for updated username
+    let mut config = config;
     print!("Enter username: ");
     io::stdout().flush()?;
     let mut username = String::new();
     io::stdin().read_line(&mut username)?;
     config.username = username.trim().to_string();
-
-    // Save the new username to config
     save_config(&config)?;
 
-    // Prompt for new password
     let password = rpassword::prompt_password("Enter new password: ")?;
 
-    // Store new credentials
     let auth_storage = crate::app::auth_storage::AuthStorage::new(get_credentials_db_path())?;
     auth_storage.store_credentials(&config.username, &password)?;
-
     println!("New credentials have been stored.");
     Ok(())
 }
@@ -126,6 +158,7 @@ fn setup_config() -> Result<Config> {
     let mut dnac_url = String::new();
     let mut username = String::new();
     let mut verify_ssl_input = String::new();
+    let mut credential_mode_input = String::new();
 
     print!("Enter Cisco DNAC URL without a / at the end (e.g., https://dnac.example.com, https://192.168.1.20): ");
     io::stdout().flush()?;
@@ -137,23 +170,41 @@ fn setup_config() -> Result<Config> {
     io::stdin().read_line(&mut username)?;
     username = username.trim().to_string();
 
-    let password = rpassword::prompt_password("Enter your password: ")?;
-
     print!("Verify SSL certificates? (y/n): ");
     io::stdout().flush()?;
     io::stdin().read_line(&mut verify_ssl_input)?;
     let verify_ssl = verify_ssl_input.trim().to_lowercase() == "y";
 
-    // Store password securely
-    let auth_storage = crate::app::auth_storage::AuthStorage::new(get_credentials_db_path())?;
-    // Store credentials with explicit username match
-    match auth_storage.store_credentials(&username, &password) {
-        Ok(_) => println!("Credentials stored securely."),
-        Err(e) => return Err(anyhow::anyhow!("Failed to store credentials: {}", e)),
-    }
-    println!("Configuration complete. Credentials stored securely.");
+    print!("Store credentials on this device? (y = store encrypted on-device, n = prompt each session) [y/n]: ");
+    io::stdout().flush()?;
+    io::stdin().read_line(&mut credential_mode_input)?;
+    let credential_mode = if credential_mode_input.trim().to_lowercase() == "n" {
+        println!("Session-only mode selected. You will be prompted for your password each time the token expires.");
+        CredentialMode::SessionOnly
+    } else {
+        CredentialMode::StoreOnDevice
+    };
 
-    Ok(Config::new(dnac_url, username, verify_ssl))
+    let config = Config {
+        dnac_url,
+        username: username.clone(),
+        verify_ssl,
+        credential_mode: credential_mode.clone(),
+    };
+
+    if credential_mode == CredentialMode::StoreOnDevice {
+        let password = rpassword::prompt_password("Enter your password: ")?;
+        let auth_storage = crate::app::auth_storage::AuthStorage::new(get_credentials_db_path())?;
+        match auth_storage.store_credentials(&username, &password) {
+            Ok(_) => println!("Credentials stored securely."),
+            Err(e) => return Err(anyhow::anyhow!("Failed to store credentials: {}", e)),
+        }
+        println!("Configuration complete. Credentials stored securely.");
+    } else {
+        println!("Configuration complete. You will be prompted for your password when needed.");
+    }
+
+    Ok(config)
 }
 
 /// Save the configuration to a file

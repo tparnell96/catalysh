@@ -1,10 +1,11 @@
 use crate::app::auth_storage::AuthStorage;
-use crate::app::config::Config;
+use crate::app::config::{Config, CredentialMode};
 use crate::helpers::utils;
 use anyhow::{anyhow, Result};
 use rusqlite::{params, Connection};
 
 use reqwest::Client;
+use rpassword;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -25,19 +26,27 @@ pub async fn authenticate(config: &Config) -> Result<Token> {
     // Check for existing token
     if let Some(token) = load_token()? {
         if token.expires_at > utils::current_timestamp() {
-            // Token is still valid
             return Ok(token);
         }
     }
 
-    // Token is missing or expired; proceed to authenticate
-    // Use AuthStorage from the config module for credential management
-    let auth_storage = AuthStorage::new(crate::app::config::get_credentials_db_path())?;
-
-    // Get stored credentials
-    let password = match auth_storage.get_credentials(&config.username) {
-        Ok(pwd) => pwd,
-        Err(e) => return Err(anyhow!("Could not retrieve credentials for user '{}': {}. Please run 'app config reset' and reconfigure.", config.username, e))
+    // Token is missing or expired — resolve the password
+    let password = match config.credential_mode {
+        CredentialMode::StoreOnDevice => {
+            let auth_storage = AuthStorage::new(crate::app::config::get_credentials_db_path())?;
+            match auth_storage.get_credentials(&config.username) {
+                Ok(pwd) => pwd,
+                Err(e) => return Err(anyhow!(
+                    "Could not retrieve credentials for user '{}': {}. \
+                     Please run 'app config reset-credentials' and reconfigure.",
+                    config.username, e
+                )),
+            }
+        }
+        CredentialMode::SessionOnly => {
+            rpassword::prompt_password(format!("Password for {}: ", config.username))
+                .map_err(|e| anyhow!("Failed to read password: {}", e))?
+        }
     };
 
     let client = Client::builder()

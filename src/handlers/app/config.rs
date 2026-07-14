@@ -1,5 +1,5 @@
-use crate::app::config;
-use crate::commands::app::config::{AppConfigCommands, SetVerifySslAction};
+use crate::app::config::{self, CredentialMode};
+use crate::commands::app::config::{AppConfigCommands, CredentialModeAction, SetVerifySslAction};
 use log::error;
 
 pub fn handle_app_config_command(subcommand: AppConfigCommands) {
@@ -12,13 +12,13 @@ pub fn handle_app_config_command(subcommand: AppConfigCommands) {
             }
         }
         AppConfigCommands::Show => match config::load_config() {
-            Ok(config) => {
+            Ok(cfg) => {
                 println!("Current Configuration:");
                 println!("---------------------");
-                println!("DNA Center URL: {}", config.dnac_url);
-                println!("Username: {}", config.username);
-                println!("Password: [hidden]");
-                println!("Verify SSL: {}", config.verify_ssl);
+                println!("DNA Center URL:    {}", cfg.dnac_url);
+                println!("Username:          {}", cfg.username);
+                println!("Verify SSL:        {}", cfg.verify_ssl);
+                println!("Credential mode:   {}", cfg.credential_mode);
             }
             Err(e) => {
                 error!("Failed to read configuration: {}", e);
@@ -38,6 +38,15 @@ pub fn handle_app_config_command(subcommand: AppConfigCommands) {
         AppConfigCommands::ResetCredentials => {
             if let Err(e) = config::reset_credentials() {
                 error!("Failed to reset credentials: {}", e);
+            }
+        }
+        AppConfigCommands::SetCredentialMode { mode } => {
+            let credential_mode = match mode {
+                CredentialModeAction::Store => CredentialMode::StoreOnDevice,
+                CredentialModeAction::Session => CredentialMode::SessionOnly,
+            };
+            if let Err(e) = config::update_credential_mode(credential_mode) {
+                error!("Failed to update credential mode: {}", e);
             }
         }
     }
