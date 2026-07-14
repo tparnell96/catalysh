@@ -284,7 +284,6 @@ pub struct SuggestedAction {
 #[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
-#[allow(unused_imports)]
 #[allow(dead_code)]
 pub struct ImpactedHost {
     pub hostType: Option<String>,

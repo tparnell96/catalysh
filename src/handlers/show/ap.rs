@@ -65,7 +65,7 @@ pub fn handle_ap_command(subcommand: ApCommands) {
                 match interfaces::get_device_neighbors(&ctx.config, &ctx.token, &device_uuid).await
                 {
                     Ok(neighbors) if !neighbors.is_empty() => {
-                        print_neighbor_table(&hostname.to_string(), mgmt_ip, &neighbors);
+                        print_neighbor_table(hostname, mgmt_ip, &neighbors);
                     }
                     // Interface API returned 404 or empty (expected for APs) — fall back
                     // to the physical topology graph which always covers APs.
@@ -85,7 +85,7 @@ pub fn handle_ap_command(subcommand: ApCommands) {
                                 );
                             }
                             Ok(neighbors) => {
-                                print_neighbor_table(&hostname.to_string(), mgmt_ip, &neighbors);
+                                print_neighbor_table(hostname, mgmt_ip, &neighbors);
                             }
                             Err(e) => error!("Failed to retrieve topology neighbors: {}", e),
                         }

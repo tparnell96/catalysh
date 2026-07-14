@@ -96,7 +96,7 @@ pub fn print_device_detail(device: AllDevices) {
         &mut table,
         "Last Updated",
         device.last_update_time.map(|timestamp| {
-            let datetime = DateTime::from_timestamp_millis(timestamp as i64)
+            let datetime = DateTime::from_timestamp_millis(timestamp)
                 .unwrap_or_else(|| DateTime::from_timestamp(0, 0).expect("REASON"));
             datetime.format("%Y-%m-%d %H:%M:%S").to_string()
         }),
