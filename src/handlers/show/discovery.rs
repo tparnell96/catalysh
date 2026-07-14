@@ -52,12 +52,30 @@ pub fn handle_discovery_command(subcommand: DiscoveryCommands) {
                                 table.add_row(row!["Field", "Value"]);
                                 table.add_row(row!["ID", d.id.as_deref().unwrap_or("N/A")]);
                                 table.add_row(row!["Name", d.name.as_deref().unwrap_or("N/A")]);
-                                table.add_row(row!["Type", d.discovery_type.as_deref().unwrap_or("N/A")]);
-                                table.add_row(row!["IP List", d.ip_address_list.as_deref().unwrap_or("N/A")]);
-                                table.add_row(row!["Status", d.discovery_status.as_deref().unwrap_or("N/A")]);
-                                table.add_row(row!["Device IDs", d.device_ids.as_deref().unwrap_or("N/A")]);
-                                table.add_row(row!["Protocol Order", d.protocol_order.as_deref().unwrap_or("N/A")]);
-                                table.add_row(row!["Netconf Port", d.netconf_port.as_deref().unwrap_or("N/A")]);
+                                table.add_row(row![
+                                    "Type",
+                                    d.discovery_type.as_deref().unwrap_or("N/A")
+                                ]);
+                                table.add_row(row![
+                                    "IP List",
+                                    d.ip_address_list.as_deref().unwrap_or("N/A")
+                                ]);
+                                table.add_row(row![
+                                    "Status",
+                                    d.discovery_status.as_deref().unwrap_or("N/A")
+                                ]);
+                                table.add_row(row![
+                                    "Device IDs",
+                                    d.device_ids.as_deref().unwrap_or("N/A")
+                                ]);
+                                table.add_row(row![
+                                    "Protocol Order",
+                                    d.protocol_order.as_deref().unwrap_or("N/A")
+                                ]);
+                                table.add_row(row![
+                                    "Netconf Port",
+                                    d.netconf_port.as_deref().unwrap_or("N/A")
+                                ]);
                                 table.printstd();
                             }
                         } else {

@@ -83,7 +83,11 @@ pub fn handle_advisory_command(subcommand: AdvisoryCommands) {
                                 crate::helpers::output::print_json(&agg);
                             } else {
                                 println!("Advisory Aggregate:");
-                                println!("{}", serde_json::to_string_pretty(&agg).unwrap_or_else(|_| agg.to_string()));
+                                println!(
+                                    "{}",
+                                    serde_json::to_string_pretty(&agg)
+                                        .unwrap_or_else(|_| agg.to_string())
+                                );
                             }
                         } else {
                             println!("No aggregate data.");

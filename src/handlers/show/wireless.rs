@@ -26,7 +26,9 @@ pub fn handle_wireless_command(subcommand: WirelessCommands) {
                                         }
                                     });
                                     table.add_row(row![
-                                        s.ssid.as_deref().unwrap_or(s.name.as_deref().unwrap_or("N/A")),
+                                        s.ssid
+                                            .as_deref()
+                                            .unwrap_or(s.name.as_deref().unwrap_or("N/A")),
                                         s.security_level.as_deref().unwrap_or("N/A"),
                                         masked.as_deref().unwrap_or("N/A"),
                                     ]);

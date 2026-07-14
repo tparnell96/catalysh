@@ -9,8 +9,7 @@ use anyhow::{anyhow, Result};
 /// Normalise a MAC address string by removing all separators (`:`, `-`, `.`) and
 /// converting to lowercase so different formats compare equal.
 fn norm_mac(mac: &str) -> String {
-    mac.to_lowercase()
-        .replace([':', '-', '.'], "")
+    mac.to_lowercase().replace([':', '-', '.'], "")
 }
 
 /// Look up a device by any of:

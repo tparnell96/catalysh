@@ -18,9 +18,18 @@ pub fn handle_platform_command(subcommand: PlatformCommands) {
                                 let mut table = Table::new();
                                 table.add_row(row!["Field", "Value"]);
                                 table.add_row(row!["Name", rel.name.as_deref().unwrap_or("N/A")]);
-                                table.add_row(row!["Version", rel.version.as_deref().unwrap_or("N/A")]);
-                                table.add_row(row!["Installed Version", rel.installed_version.as_deref().unwrap_or("N/A")]);
-                                table.add_row(row!["System Version", rel.system_version.as_deref().unwrap_or("N/A")]);
+                                table.add_row(row![
+                                    "Version",
+                                    rel.version.as_deref().unwrap_or("N/A")
+                                ]);
+                                table.add_row(row![
+                                    "Installed Version",
+                                    rel.installed_version.as_deref().unwrap_or("N/A")
+                                ]);
+                                table.add_row(row![
+                                    "System Version",
+                                    rel.system_version.as_deref().unwrap_or("N/A")
+                                ]);
                                 table.printstd();
                             }
                         } else {

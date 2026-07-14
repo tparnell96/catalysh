@@ -31,11 +31,7 @@ pub struct SsidListResponse {
     pub version: Option<String>,
 }
 
-pub async fn get_ssids(
-    config: &Config,
-    token: &Token,
-    site_id: &str,
-) -> Result<SsidListResponse> {
+pub async fn get_ssids(config: &Config, token: &Token, site_id: &str) -> Result<SsidListResponse> {
     let client = http::build_client(config)?;
     let url = format!(
         "{}/dna/intent/api/v1/sites/{}/wirelessSettings/ssids",

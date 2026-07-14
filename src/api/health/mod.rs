@@ -46,10 +46,7 @@ pub struct ClientHealthResponse {
     pub response: Option<Vec<ClientHealthItem>>,
 }
 
-pub async fn get_network_health(
-    config: &Config,
-    token: &Token,
-) -> Result<NetworkHealthResponse> {
+pub async fn get_network_health(config: &Config, token: &Token) -> Result<NetworkHealthResponse> {
     let client = http::build_client(config)?;
     let ts = utils::current_timestamp();
     let url = format!(
@@ -59,10 +56,7 @@ pub async fn get_network_health(
     http::get_authenticated(&client, config, token, &url).await
 }
 
-pub async fn get_client_health(
-    config: &Config,
-    token: &Token,
-) -> Result<ClientHealthResponse> {
+pub async fn get_client_health(config: &Config, token: &Token) -> Result<ClientHealthResponse> {
     let client = http::build_client(config)?;
     let ts = utils::current_timestamp();
     let url = format!(

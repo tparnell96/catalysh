@@ -51,8 +51,7 @@ pub async fn get_device_interfaces(
         "{}/dna/intent/api/v1/interface/network-device/{}",
         config.dnac_url, device_id
     );
-    let resp: InterfaceListResponse =
-        http::get_authenticated(&client, config, token, &url).await?;
+    let resp: InterfaceListResponse = http::get_authenticated(&client, config, token, &url).await?;
     Ok(resp.response)
 }
 
@@ -84,8 +83,7 @@ pub async fn get_interface_neighbor(
         "{}/dna/intent/api/v1/network-device/{}/interface/{}/neighbor",
         config.dnac_url, device_uuid, interface_uuid
     );
-    let resp: NeighborResponse =
-        http::get_authenticated(&client, config, token, &url).await?;
+    let resp: NeighborResponse = http::get_authenticated(&client, config, token, &url).await?;
     Ok(resp.response)
 }
 
@@ -180,7 +178,10 @@ pub async fn get_neighbors_from_topology(
     // Find the target node by hostname (label) or IP
     let hostname_lower = hostname.to_lowercase();
     let target_node = nodes.iter().find(|n| {
-        n.label.as_deref().map(|l| l.to_lowercase() == hostname_lower).unwrap_or(false)
+        n.label
+            .as_deref()
+            .map(|l| l.to_lowercase() == hostname_lower)
+            .unwrap_or(false)
             || n.ip.as_deref() == Some(mgmt_ip)
     });
 
@@ -225,12 +226,8 @@ pub async fn get_neighbors_from_topology(
         };
 
         let peer = node_by_dpid.get(peer_dpid);
-        let peer_label = peer
-            .and_then(|n| n.label.as_deref())
-            .unwrap_or(peer_dpid);
-        let peer_role = peer
-            .and_then(|n| n.role.as_deref())
-            .unwrap_or("unknown");
+        let peer_label = peer.and_then(|n| n.label.as_deref()).unwrap_or(peer_dpid);
+        let peer_role = peer.and_then(|n| n.role.as_deref()).unwrap_or("unknown");
 
         // Port info lives in the link's interface_details or label fields
         // These are serde_json::Value — extract best-effort strings
@@ -257,5 +254,9 @@ pub async fn get_neighbors_from_topology(
 /// Try to pull a string field out of a serde_json::Value that may be an object
 /// or null.
 fn extract_str(val: &Option<serde_json::Value>, key: &str) -> Option<String> {
-    val.as_ref()?.as_object()?.get(key)?.as_str().map(String::from)
+    val.as_ref()?
+        .as_object()?
+        .get(key)?
+        .as_str()
+        .map(String::from)
 }

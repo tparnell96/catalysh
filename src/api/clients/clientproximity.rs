@@ -22,10 +22,7 @@ pub async fn get_client_proximity(
     time_resolution: Option<u32>,
 ) -> Result<ProximityResponse> {
     let client = http::build_client(config)?;
-    let url = format!(
-        "{}/dna/intent/api/v1/client-proximity",
-        config.dnac_url
-    );
+    let url = format!("{}/dna/intent/api/v1/client-proximity", config.dnac_url);
 
     let days = number_days.unwrap_or(14);
     let resolution = time_resolution.unwrap_or(15);

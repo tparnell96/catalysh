@@ -86,8 +86,14 @@ pub fn handle_client_command(subcommand: ClientCommands) {
                         if crate::helpers::output::is_json() {
                             crate::helpers::output::print_json(&resp);
                         } else {
-                            println!("Execution ID: {}", resp.execution_id.as_deref().unwrap_or("N/A"));
-                            println!("Status URL:   {}", resp.execution_status_url.as_deref().unwrap_or("N/A"));
+                            println!(
+                                "Execution ID: {}",
+                                resp.execution_id.as_deref().unwrap_or("N/A")
+                            );
+                            println!(
+                                "Status URL:   {}",
+                                resp.execution_status_url.as_deref().unwrap_or("N/A")
+                            );
                             if let Some(msg) = &resp.message {
                                 println!("Message:      {}", msg);
                             }
