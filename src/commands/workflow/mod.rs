@@ -45,14 +45,14 @@ pub enum PnpCommands {
 pub enum DiagnosticCommands {
     /// List diagnostic validation workflows
     List {
-        /// Filter by run status: PENDING, IN_PROGRESS, SUCCESS, FAILED
+        /// Filter by run status: PENDING, IN_PROGRESS, COMPLETED, FAILED
         #[arg(long)]
         status: Option<String>,
         /// Max results to return (default: 50)
         #[arg(long, default_value = "50")]
         limit: u32,
-        /// Result offset for pagination (default: 0)
-        #[arg(long, default_value = "0")]
+        /// Result offset, 1-based (default: 1 = first page)
+        #[arg(long, default_value = "1")]
         offset: u32,
     },
     /// Get a diagnostic workflow by ID

@@ -56,7 +56,7 @@ pub struct SubmitResult {
 }
 
 /// List diagnostic validation workflows, optionally filtered by run status
-/// (e.g. "PENDING", "IN_PROGRESS", "SUCCESS", "FAILED").
+/// (e.g. "PENDING", "IN_PROGRESS", "COMPLETED", "FAILED").
 pub async fn list_diagnostic_workflows(
     config: &Config,
     token: &Token,
@@ -65,13 +65,29 @@ pub async fn list_diagnostic_workflows(
     offset: u32,
 ) -> Result<Vec<DiagnosticWorkflow>> {
     let client = http::build_client(config)?;
-    let mut url = format!(
-        "{}/dna/intent/api/v1/diagnosticValidationWorkflows?limit={}&offset={}",
-        config.dnac_url, limit, offset
+    let base = format!(
+        "{}/dna/intent/api/v1/diagnosticValidationWorkflows",
+        config.dnac_url
     );
-    if let Some(s) = run_status {
-        url.push_str(&format!("&runStatus={}", s));
+    // Offset is 1-based per API spec; only add limit/offset if non-default
+    let mut params: Vec<(&str, String)> = Vec::new();
+    if limit != 50 {
+        params.push(("limit", limit.to_string()));
     }
+    // API offset is 1-based; 0 is invalid — treat 0 as "start from beginning" → 1
+    let effective_offset = if offset == 0 { 1 } else { offset };
+    if effective_offset != 1 {
+        params.push(("offset", effective_offset.to_string()));
+    }
+    if let Some(s) = run_status {
+        params.push(("runStatus", s.to_string()));
+    }
+    let url = if params.is_empty() {
+        base
+    } else {
+        let qs: Vec<String> = params.iter().map(|(k, v)| format!("{}={}", k, v)).collect();
+        format!("{}?{}", base, qs.join("&"))
+    };
     let resp: DiagnosticListResponse =
         http::get_authenticated(&client, config, token, &url).await?;
     Ok(resp.response.unwrap_or_default())
