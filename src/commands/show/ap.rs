@@ -9,6 +9,11 @@ pub enum ApCommands {
         /// Hostname, management IP, ethernet MAC, or radio MAC of the AP
         selector: String,
     },
+    /// Show AP uplink neighbor info (connected switch + port via CDP/LLDP)
+    Neighbors {
+        /// Hostname, management IP, ethernet MAC, or radio MAC of the AP
+        selector: String,
+    },
     /// Show all RF profiles
     RfProfile,
 }

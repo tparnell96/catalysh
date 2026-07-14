@@ -1,10 +1,11 @@
 // src/handlers/show/ap.rs
 
+use crate::api::devices::interfaces;
 use crate::api::wireless::{accesspointconfig, rfprofile};
 use crate::commands::show::ap::ApCommands;
-use crate::helpers::{command_utils, resolver, utils};
+use crate::helpers::{command_utils, output, resolver, utils};
 use log::{error, info};
-use prettytable::{row, table};
+use prettytable::{row, table, Table};
 
 pub fn handle_ap_command(subcommand: ApCommands) {
     command_utils::execute_with_context(|ctx| async move {
@@ -36,6 +37,57 @@ pub fn handle_ap_command(subcommand: ApCommands) {
                     Err(e) => {
                         error!("Failed to retrieve AP config: {}", e);
                     }
+                }
+            }
+            ApCommands::Neighbors { selector } => {
+                // Resolve selector → device record
+                let device = match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
+                    Ok(d) => d,
+                    Err(e) => {
+                        error!("Could not resolve device '{}': {}", selector, e);
+                        return Ok(());
+                    }
+                };
+
+                let device_uuid = match device.id.as_deref() {
+                    Some(id) => id.to_string(),
+                    None => {
+                        error!("Device '{}' has no UUID in inventory", selector);
+                        return Ok(());
+                    }
+                };
+
+                let hostname = device.hostname.as_deref().unwrap_or(&selector);
+                let mgmt_ip = device.management_ip_address.as_deref().unwrap_or("N/A");
+
+                info!("Resolved '{}' → UUID {} ({})", selector, device_uuid, hostname);
+
+                match interfaces::get_ap_uplink_neighbors(&ctx.config, &ctx.token, &device_uuid).await {
+                    Ok(neighbors) if neighbors.is_empty() => {
+                        println!("No CDP/LLDP neighbors discovered for {} ({})", hostname, mgmt_ip);
+                    }
+                    Ok(neighbors) => {
+                        if output::is_json() {
+                            output::print_json(&neighbors);
+                        } else {
+                            println!("\nAP Uplink Neighbors: {} ({})", hostname, mgmt_ip);
+                            let mut t = Table::new();
+                            t.add_row(row![ FbFy =>
+                                "AP Port", "Status", "Connected Switch", "Switch Port", "Capabilities"
+                            ]);
+                            for n in &neighbors {
+                                t.add_row(row![
+                                    n.ap_port,
+                                    n.ap_port_status,
+                                    n.neighbor_device,
+                                    n.neighbor_port,
+                                    n.capabilities.join(", "),
+                                ]);
+                            }
+                            t.printstd();
+                        }
+                    }
+                    Err(e) => error!("Failed to retrieve AP neighbors: {}", e),
                 }
             }
             ApCommands::RfProfile => {

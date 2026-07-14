@@ -5,3 +5,4 @@ pub mod devicecount;
 pub mod devicedetailenrichment;
 pub mod devicehealth;
 pub mod getdevicelist;
+pub mod interfaces;
