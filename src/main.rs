@@ -5,6 +5,7 @@ mod helpers;
 mod commands;
 mod handlers;
 
+use clap::Parser;
 use clap_repl::reedline::{DefaultPrompt, DefaultPromptSegment, FileBackedHistory};
 use clap_repl::ClapEditor;
 use commands::{route_command, Cli};
@@ -29,21 +30,29 @@ fn perform_first_time_installation() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-#[allow(non_snake_case)]
 fn main() {
     env_logger::init();
-    // Initial check to confirm program is correctly installed
     if let Err(e) = perform_first_time_installation() {
         eprintln!("Error during installation: {}", e);
         return;
     }
 
+    // If arguments are passed, execute as a one-shot command and exit —
+    // matching the nslookup pattern: no args = interactive REPL.
+    if std::env::args().len() > 1 {
+        match Cli::try_parse() {
+            Ok(cli) => route_command(cli.command),
+            Err(e) => e.exit(),
+        }
+        return;
+    }
+
+    // No arguments → enter interactive REPL
     let prompt = DefaultPrompt {
         left_prompt: DefaultPromptSegment::Basic("catalysh".to_owned()),
         ..DefaultPrompt::default()
     };
 
-    // Create the REPL
     let rl = ClapEditor::<Cli>::builder()
         .with_prompt(Box::new(prompt))
         .with_editor_hook(|reed| {
