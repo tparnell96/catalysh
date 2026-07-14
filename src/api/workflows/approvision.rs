@@ -85,6 +85,28 @@ pub async fn provision_ap(
     extract_task_id(response.response, "AP provision")
 }
 
+pub async fn provision_ap_legacy(
+    config: &Config,
+    token: &Token,
+    mac: &str,
+    site_hierarchy: &str,
+    rf_profile: &str,
+    ap_name: &str,
+) -> Result<String> {
+    let request = ApProvisionRequest {
+        ap_zone_name: String::new(),
+        ap_name: ap_name.to_string(),
+        rf_profile: rf_profile.to_string(),
+        site_name_hierarchy: site_hierarchy.to_string(),
+        mac_address: mac.to_string(),
+    };
+
+    let response =
+        post_json::<_, ApProvisionResponse>(config, token, AP_PROVISION_LEGACY_PATH, &request)
+            .await?;
+    extract_task_id(response.response, "legacy AP provision")
+}
+
 pub async fn get_provision_status(
     config: &Config,
     token: &Token,

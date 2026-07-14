@@ -32,6 +32,11 @@ fn handle_ap_workflow(subcommand: ApWorkflowCommands) {
                         return Ok(());
                     }
                 };
+                let ap_name = resolver::resolve_device(&ctx.config, &ctx.token, &ap)
+                    .await
+                    .ok()
+                    .and_then(|device| device.hostname)
+                    .unwrap_or_else(|| ap.clone());
 
                 match approvision::provision_ap(
                     &ctx.config,
@@ -39,7 +44,7 @@ fn handle_ap_workflow(subcommand: ApWorkflowCommands) {
                     &ap_mac,
                     &site,
                     &rf_profile,
-                    &ap,
+                    &ap_name,
                 )
                 .await
                 {

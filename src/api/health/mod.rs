@@ -8,6 +8,7 @@ use crate::helpers::{http, utils};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+#[allow(unused_imports)]
 pub use clienthealth::{
     ClientHealthResponse, ClientHealthScore, ClientHealthScoreCategory, ClientHealthSite,
     get_client_health,
