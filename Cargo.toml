@@ -1,13 +1,13 @@
 [package]
 name = "catalysh"
-version = "0.0.8"
+version = "1.0.0"
 edition = "2021"
-description = "A command line utility for interaction with Ciscos Catalyst Center, utilizing it's API"
-repository = "https://github.com/tparnell96/catalysh"
-homepage = "https://github.com/tparnell96/catalysh"
-license-file = "LICENSE"
+description = "A command line utility for interaction with Cisco's Catalyst Center, utilizing its API"
+repository = "https://github.com/hexabyte8/catalysh"
+homepage = "https://github.com/hexabyte8/catalysh"
+license = "MIT"
 readme = "README.md"
-documentation = "https://github.com/tparnell96/catalysh"
+documentation = "https://github.com/hexabyte8/catalysh"
 keywords = ["networking", "cisco", "dnac", "catalyst", "cli"]
 categories = ["command-line-utilities"]
 exclude = ["/target", "/Cargo.lock", "/.github"]
