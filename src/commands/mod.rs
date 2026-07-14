@@ -1,11 +1,11 @@
 pub mod app;
-pub mod config;
 pub mod run;
 pub mod show;
+pub mod workflow;
 
 use crate::handlers::{
-    clear_screen, handle_app_command, handle_config_command, handle_run_command,
-    handle_show_command,
+    clear_screen, handle_app_command, handle_run_command,
+    handle_show_command, handle_workflow_command,
 };
 use crate::helpers::output::OutputFormat;
 use clap::{Parser, Subcommand};
@@ -44,8 +44,11 @@ pub enum Commands {
         #[command(subcommand)]
         subcommand: run::RunCommands,
     },
-    /// Start configuration sub-REPL
-    Config,
+    /// Catalyst Center workflow commands (PnP, diagnostic, device replacement)
+    Workflow {
+        #[command(subcommand)]
+        subcommand: workflow::WorkflowCommands,
+    },
     /// App-specific commands
     App {
         #[command(subcommand)]
@@ -64,7 +67,7 @@ pub fn route_command(cli: Cli) {
     match cli.command {
         Commands::Show { subcommand } => handle_show_command(subcommand),
         Commands::Run { subcommand } => handle_run_command(subcommand),
-        Commands::Config => handle_config_command(),
+        Commands::Workflow { subcommand } => handle_workflow_command(subcommand),
         Commands::App { subcommand } => handle_app_command(subcommand),
         Commands::Clear => {
             if let Err(e) = clear_screen() {

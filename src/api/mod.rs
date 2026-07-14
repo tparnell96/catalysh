@@ -15,3 +15,4 @@ pub mod tags;
 pub mod task;
 pub mod topology;
 pub mod wireless;
+pub mod workflows;
