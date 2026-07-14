@@ -352,7 +352,10 @@ pub async fn get_client_enrichment(
     let raw: serde_json::Value = resp.json().await?;
 
     // Log the raw structure at debug level so operators can use RUST_LOG=debug to inspect it
-    log::debug!("Raw enrichment response: {}", serde_json::to_string_pretty(&raw).unwrap_or_default());
+    log::debug!(
+        "Raw enrichment response: {}",
+        serde_json::to_string_pretty(&raw).unwrap_or_default()
+    );
 
     let items: Vec<ClientEnrichment> = match raw {
         serde_json::Value::Array(arr) => serde_json::from_value(serde_json::Value::Array(arr))

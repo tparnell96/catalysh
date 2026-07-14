@@ -1152,7 +1152,9 @@ pub fn print_client_list(items: Vec<ClientListItem>) {
             item.connection_status.as_deref().unwrap_or("N/A"),
             health_score,
             ssid,
-            item.connected_network_device_name.as_deref().unwrap_or("N/A"),
+            item.connected_network_device_name
+                .as_deref()
+                .unwrap_or("N/A"),
         ]);
     }
     table.set_format(*format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR);

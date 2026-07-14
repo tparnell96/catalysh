@@ -18,7 +18,11 @@ pub fn handle_path_command(subcommand: PathCommands) {
                             } else {
                                 let mut table = Table::new();
                                 table.add_row(row![
-                                    "ID", "Source IP", "Dest IP", "Status", "Created"
+                                    "ID",
+                                    "Source IP",
+                                    "Dest IP",
+                                    "Status",
+                                    "Created"
                                 ]);
                                 for f in flows {
                                     let created = f.create_time.map(|ts| {
@@ -84,9 +88,18 @@ pub fn handle_path_command(subcommand: PathCommands) {
                             if crate::helpers::output::is_json() {
                                 crate::helpers::output::print_json(&detail);
                             } else {
-                                println!("Flow Analysis: {}", detail.id.as_deref().unwrap_or("N/A"));
-                                println!("  Source: {}", detail.source_i_p.as_deref().unwrap_or("N/A"));
-                                println!("  Dest:   {}", detail.dest_i_p.as_deref().unwrap_or("N/A"));
+                                println!(
+                                    "Flow Analysis: {}",
+                                    detail.id.as_deref().unwrap_or("N/A")
+                                );
+                                println!(
+                                    "  Source: {}",
+                                    detail.source_i_p.as_deref().unwrap_or("N/A")
+                                );
+                                println!(
+                                    "  Dest:   {}",
+                                    detail.dest_i_p.as_deref().unwrap_or("N/A")
+                                );
                                 println!("  Status: {}", detail.status.as_deref().unwrap_or("N/A"));
                                 if let Some(elements) = detail.network_elements_info {
                                     println!("\nPath Hops:");

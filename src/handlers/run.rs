@@ -34,13 +34,8 @@ fn handle_command_runner(subcommand: CommandRunnerCommands) {
                     return Ok(());
                 }
 
-                match commandrunner::exec_commands(
-                    &ctx.config,
-                    &ctx.token,
-                    commands,
-                    device_uuids,
-                )
-                .await
+                match commandrunner::exec_commands(&ctx.config, &ctx.token, commands, device_uuids)
+                    .await
                 {
                     Ok(resp) => {
                         if let Some(inner) = resp.response {

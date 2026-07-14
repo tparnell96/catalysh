@@ -73,16 +73,22 @@ pub fn install_cert(source: &std::path::Path) -> Result<String> {
     fs::create_dir_all(&certs_dir)?;
 
     // Basic sanity check: file must be readable
-    let contents = fs::read(source)
-        .map_err(|e| anyhow::anyhow!("Could not read certificate file '{}': {}", source.display(), e))?;
+    let contents = fs::read(source).map_err(|e| {
+        anyhow::anyhow!(
+            "Could not read certificate file '{}': {}",
+            source.display(),
+            e
+        )
+    })?;
 
     if contents.is_empty() {
         return Err(anyhow::anyhow!("Certificate file is empty"));
     }
 
     let dest = certs_dir.join(&name);
-    fs::write(&dest, &contents)
-        .map_err(|e| anyhow::anyhow!("Could not write certificate to '{}': {}", dest.display(), e))?;
+    fs::write(&dest, &contents).map_err(|e| {
+        anyhow::anyhow!("Could not write certificate to '{}': {}", dest.display(), e)
+    })?;
 
     Ok(name)
 }
@@ -172,7 +178,9 @@ pub fn update_verify_ssl(verify: bool) -> Result<()> {
 pub fn update_credential_mode(mode: CredentialMode) -> Result<()> {
     let mut config = load_config()?;
 
-    if mode == CredentialMode::SessionOnly && config.credential_mode == CredentialMode::StoreOnDevice {
+    if mode == CredentialMode::SessionOnly
+        && config.credential_mode == CredentialMode::StoreOnDevice
+    {
         // Wipe any stored credentials so they are not left on disk
         let db_path = get_credentials_db_path();
         if db_path.exists() {

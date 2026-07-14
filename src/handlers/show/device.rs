@@ -1,6 +1,8 @@
 // src/handlers/show/device.rs
 
-use crate::api::devices::{compliance, devicecount, devicedetailenrichment, devicehealth, getdevicelist, interfaces};
+use crate::api::devices::{
+    compliance, devicecount, devicedetailenrichment, devicehealth, getdevicelist, interfaces,
+};
 use crate::commands::show::device::{
     DeviceCommands, DeviceDetailFilter, DeviceEnrichmentFilter, DeviceListFilter,
 };
@@ -101,7 +103,9 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
 
                             match device_option {
                                 Some(device) => utils::print_device_detail(device),
-                                None => println!("No device found matching the specified criteria."),
+                                None => {
+                                    println!("No device found matching the specified criteria.")
+                                }
                             }
                         }
                         Err(e) => error!("Failed to retrieve devices: {}", e),
@@ -178,28 +182,51 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                 }
             }
             DeviceCommands::Neighbors { selector } => {
-                let device = match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
-                    Ok(d) => d,
-                    Err(e) => { error!("Could not resolve device '{}': {}", selector, e); return Ok(()); }
-                };
+                let device =
+                    match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
+                        Ok(d) => d,
+                        Err(e) => {
+                            error!("Could not resolve device '{}': {}", selector, e);
+                            return Ok(());
+                        }
+                    };
                 let device_uuid = match device.id.as_deref() {
                     Some(id) => id.to_string(),
-                    None => { error!("Device '{}' has no UUID", selector); return Ok(()); }
+                    None => {
+                        error!("Device '{}' has no UUID", selector);
+                        return Ok(());
+                    }
                 };
                 let hostname = device.hostname.clone().unwrap_or_else(|| selector.clone());
-                let mgmt_ip = device.management_ip_address.clone().unwrap_or_else(|| "N/A".to_string());
+                let mgmt_ip = device
+                    .management_ip_address
+                    .clone()
+                    .unwrap_or_else(|| "N/A".to_string());
 
                 // Try the interface/CDP API first; fall back to physical topology for
                 // devices that don't expose interfaces this way (e.g. APs).
-                let neighbors = match interfaces::get_device_neighbors(&ctx.config, &ctx.token, &device_uuid).await {
-                    Ok(n) if !n.is_empty() => n,
-                    _ => {
-                        match interfaces::get_neighbors_from_topology(&ctx.config, &ctx.token, &hostname, &mgmt_ip).await {
-                            Ok(n) => n,
-                            Err(e) => { error!("Failed to retrieve neighbors: {}", e); return Ok(()); }
+                let neighbors =
+                    match interfaces::get_device_neighbors(&ctx.config, &ctx.token, &device_uuid)
+                        .await
+                    {
+                        Ok(n) if !n.is_empty() => n,
+                        _ => {
+                            match interfaces::get_neighbors_from_topology(
+                                &ctx.config,
+                                &ctx.token,
+                                &hostname,
+                                &mgmt_ip,
+                            )
+                            .await
+                            {
+                                Ok(n) => n,
+                                Err(e) => {
+                                    error!("Failed to retrieve neighbors: {}", e);
+                                    return Ok(());
+                                }
+                            }
                         }
-                    }
-                };
+                    };
 
                 if neighbors.is_empty() {
                     println!("No neighbors found for {} ({})", hostname, mgmt_ip);
@@ -211,8 +238,11 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                     t.add_row(row![FbFy => "Local Port", "Status", "Connected Device", "Neighbor Port", "Capabilities"]);
                     for n in &neighbors {
                         t.add_row(row![
-                            n.local_port, n.port_status, n.neighbor_device,
-                            n.neighbor_port, n.capabilities.join(", ")
+                            n.local_port,
+                            n.port_status,
+                            n.neighbor_device,
+                            n.neighbor_port,
+                            n.capabilities.join(", ")
                         ]);
                     }
                     t.printstd();
@@ -221,14 +251,24 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
             DeviceCommands::Count => {
                 match devicecount::get_device_count(&ctx.config, &ctx.token).await {
                     Ok(resp) => {
-                        let count = resp.response.as_ref().map(|v| v.to_string()).unwrap_or_else(|| "N/A".to_string());
+                        let count = resp
+                            .response
+                            .as_ref()
+                            .map(|v| v.to_string())
+                            .unwrap_or_else(|| "N/A".to_string());
                         println!("Total device count: {}", count);
                     }
                     Err(e) => error!("Failed to retrieve device count: {}", e),
                 }
             }
             DeviceCommands::Health { device_role } => {
-                match devicehealth::get_device_health(&ctx.config, &ctx.token, device_role.as_deref()).await {
+                match devicehealth::get_device_health(
+                    &ctx.config,
+                    &ctx.token,
+                    device_role.as_deref(),
+                )
+                .await
+                {
                     Ok(resp) => {
                         if let Some(devices) = resp.response {
                             let mut table = Table::new();
@@ -244,8 +284,14 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                                     d.name.as_deref().unwrap_or("N/A"),
                                     d.ip_address.as_deref().unwrap_or("N/A"),
                                     d.device_category.as_deref().unwrap_or("N/A"),
-                                    d.overall_health.as_ref().map(|v| v.to_string()).unwrap_or_else(|| "N/A".to_string()),
-                                    d.issue_count.as_ref().map(|v| v.to_string()).unwrap_or_else(|| "N/A".to_string()),
+                                    d.overall_health
+                                        .as_ref()
+                                        .map(|v| v.to_string())
+                                        .unwrap_or_else(|| "N/A".to_string()),
+                                    d.issue_count
+                                        .as_ref()
+                                        .map(|v| v.to_string())
+                                        .unwrap_or_else(|| "N/A".to_string()),
                                 ]);
                             }
                             table.printstd();
@@ -257,7 +303,13 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                 }
             }
             DeviceCommands::Compliance { compliance_type } => {
-                match compliance::get_compliance(&ctx.config, &ctx.token, compliance_type.as_deref()).await {
+                match compliance::get_compliance(
+                    &ctx.config,
+                    &ctx.token,
+                    compliance_type.as_deref(),
+                )
+                .await
+                {
                     Ok(resp) => {
                         if let Some(records) = resp.response {
                             let mut table = Table::new();

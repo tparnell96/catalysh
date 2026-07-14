@@ -36,11 +36,14 @@ pub async fn authenticate(config: &Config) -> Result<Token> {
             let auth_storage = AuthStorage::new(crate::app::config::get_credentials_db_path())?;
             match auth_storage.get_credentials(&config.username) {
                 Ok(pwd) => pwd,
-                Err(e) => return Err(anyhow!(
-                    "Could not retrieve credentials for user '{}': {}. \
+                Err(e) => {
+                    return Err(anyhow!(
+                        "Could not retrieve credentials for user '{}': {}. \
                      Please run 'app config reset-credentials' and reconfigure.",
-                    config.username, e
-                )),
+                        config.username,
+                        e
+                    ))
+                }
             }
         }
         CredentialMode::SessionOnly => {

@@ -18,7 +18,11 @@ pub fn handle_topology_command(subcommand: TopologyCommands) {
                                 } else {
                                     let mut table = Table::new();
                                     table.add_row(row![
-                                        "Label", "IP", "Device Type", "Role", "Family"
+                                        "Label",
+                                        "IP",
+                                        "Device Type",
+                                        "Role",
+                                        "Family"
                                     ]);
                                     for node in nodes {
                                         table.add_row(row![
@@ -51,7 +55,10 @@ pub fn handle_topology_command(subcommand: TopologyCommands) {
                                 } else {
                                     let mut table = Table::new();
                                     table.add_row(row![
-                                        "Name", "ID", "Location Address", "Parent ID"
+                                        "Name",
+                                        "ID",
+                                        "Location Address",
+                                        "Parent ID"
                                     ]);
                                     for site in sites {
                                         table.add_row(row![
@@ -83,7 +90,11 @@ pub fn handle_topology_command(subcommand: TopologyCommands) {
                                 } else {
                                     let mut table = Table::new();
                                     table.add_row(row![
-                                        "Label", "IP", "Device Type", "Role", "Family"
+                                        "Label",
+                                        "IP",
+                                        "Device Type",
+                                        "Role",
+                                        "Family"
                                     ]);
                                     for node in nodes {
                                         table.add_row(row![
