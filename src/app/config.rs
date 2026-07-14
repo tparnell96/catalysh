@@ -52,6 +52,72 @@ pub fn get_credentials_db_path() -> PathBuf {
     db_path
 }
 
+/// Returns the directory where custom CA/SSL certificates are stored.
+pub fn get_certs_dir() -> PathBuf {
+    let mut dir = config_dir().expect("Could not determine config directory");
+    dir.push("catalysh");
+    dir.push("certs");
+    dir
+}
+
+/// Copy a PEM/CRT/CER certificate file into the catalysh certs directory.
+/// Returns the name it was stored under.
+pub fn install_cert(source: &std::path::Path) -> Result<String> {
+    let name = source
+        .file_name()
+        .and_then(|n| n.to_str())
+        .ok_or_else(|| anyhow::anyhow!("Could not determine certificate filename"))?
+        .to_string();
+
+    let certs_dir = get_certs_dir();
+    fs::create_dir_all(&certs_dir)?;
+
+    // Basic sanity check: file must be readable
+    let contents = fs::read(source)
+        .map_err(|e| anyhow::anyhow!("Could not read certificate file '{}': {}", source.display(), e))?;
+
+    if contents.is_empty() {
+        return Err(anyhow::anyhow!("Certificate file is empty"));
+    }
+
+    let dest = certs_dir.join(&name);
+    fs::write(&dest, &contents)
+        .map_err(|e| anyhow::anyhow!("Could not write certificate to '{}': {}", dest.display(), e))?;
+
+    Ok(name)
+}
+
+/// List the names of all installed custom certificates.
+pub fn list_certs() -> Result<Vec<String>> {
+    let certs_dir = get_certs_dir();
+    if !certs_dir.exists() {
+        return Ok(Vec::new());
+    }
+
+    let mut names = Vec::new();
+    for entry in fs::read_dir(&certs_dir)? {
+        let entry = entry?;
+        let file_name = entry.file_name();
+        let name = file_name.to_string_lossy().to_string();
+        // Skip hidden files and non-cert extensions
+        if !name.starts_with('.') {
+            names.push(name);
+        }
+    }
+    names.sort();
+    Ok(names)
+}
+
+/// Remove a named certificate from the certs directory.
+pub fn remove_cert(name: &str) -> Result<()> {
+    let cert_path = get_certs_dir().join(name);
+    if !cert_path.exists() {
+        return Err(anyhow::anyhow!("Certificate '{}' not found", name));
+    }
+    fs::remove_file(&cert_path)?;
+    Ok(())
+}
+
 /// Load configuration and trigger setup if necessary
 pub fn load_config() -> Result<Config> {
     let config_path = get_config_path();

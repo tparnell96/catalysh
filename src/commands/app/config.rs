@@ -1,4 +1,5 @@
 use clap::Subcommand;
+use std::path::PathBuf;
 
 #[derive(Debug, Subcommand)]
 pub enum AppConfigCommands {
@@ -22,6 +23,18 @@ pub enum AppConfigCommands {
     SetCredentialMode {
         #[command(subcommand)]
         mode: CredentialModeAction,
+    },
+    /// Install a custom CA certificate (PEM or DER) for SSL verification
+    InstallCert {
+        /// Path to the certificate file (.pem, .crt, .cer, or .der)
+        path: PathBuf,
+    },
+    /// List installed custom CA certificates
+    ListCerts,
+    /// Remove an installed custom CA certificate by filename
+    RemoveCert {
+        /// Filename of the certificate to remove (as shown by list-certs)
+        name: String,
     },
 }
 

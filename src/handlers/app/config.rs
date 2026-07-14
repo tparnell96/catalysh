@@ -19,6 +19,12 @@ pub fn handle_app_config_command(subcommand: AppConfigCommands) {
                 println!("Username:          {}", cfg.username);
                 println!("Verify SSL:        {}", cfg.verify_ssl);
                 println!("Credential mode:   {}", cfg.credential_mode);
+                match config::list_certs() {
+                    Ok(certs) if !certs.is_empty() => {
+                        println!("Custom CA certs:   {}", certs.join(", "))
+                    }
+                    _ => println!("Custom CA certs:   none"),
+                }
             }
             Err(e) => {
                 error!("Failed to read configuration: {}", e);
@@ -49,5 +55,28 @@ pub fn handle_app_config_command(subcommand: AppConfigCommands) {
                 error!("Failed to update credential mode: {}", e);
             }
         }
+        AppConfigCommands::InstallCert { path } => match config::install_cert(&path) {
+            Ok(name) => println!(
+                "Certificate '{}' installed. Re-enable SSL verification with:\n  app config set-verify-ssl enable",
+                name
+            ),
+            Err(e) => error!("Failed to install certificate: {}", e),
+        },
+        AppConfigCommands::ListCerts => match config::list_certs() {
+            Ok(certs) if certs.is_empty() => {
+                println!("No custom CA certificates installed.");
+            }
+            Ok(certs) => {
+                println!("Installed custom CA certificates:");
+                for cert in certs {
+                    println!("  {}", cert);
+                }
+            }
+            Err(e) => error!("Failed to list certificates: {}", e),
+        },
+        AppConfigCommands::RemoveCert { name } => match config::remove_cert(&name) {
+            Ok(()) => println!("Certificate '{}' removed.", name),
+            Err(e) => error!("Failed to remove certificate: {}", e),
+        },
     }
 }
