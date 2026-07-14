@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // src/api/platform/mod.rs
 use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
