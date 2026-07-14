@@ -347,6 +347,19 @@ pub async fn get_client_enrichment(
         ));
     }
 
-    let enrichment_response = resp.json::<ClientEnrichmentResponse>().await?;
-    Ok(enrichment_response)
+    // The API returns an array for mac_address lookups and a single object
+    // for network_user_id lookups. Normalise both to Vec<ClientEnrichment>.
+    let raw: serde_json::Value = resp.json().await?;
+    let items: Vec<ClientEnrichment> = match raw {
+        serde_json::Value::Array(arr) => serde_json::from_value(serde_json::Value::Array(arr))
+            .map_err(|e| anyhow!("Failed to parse enrichment array: {}", e))?,
+        obj @ serde_json::Value::Object(_) => {
+            let item: ClientEnrichment = serde_json::from_value(obj)
+                .map_err(|e| anyhow!("Failed to parse enrichment object: {}", e))?;
+            vec![item]
+        }
+        _ => return Err(anyhow!("Unexpected enrichment response shape")),
+    };
+
+    Ok(ClientEnrichmentResponse(items))
 }
