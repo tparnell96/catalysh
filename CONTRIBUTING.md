@@ -1,267 +1,333 @@
 # Contributing to catalysh
 
-Thank you for your interest in contributing to catalysh! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing! This document covers the project architecture, development environment, conventions, and the process for submitting changes.
 
-## Project Structure
+---
 
+## Project structure
 
 ```
 catalysh/
-├── src/
-│   ├── api/                    # API interaction layer
-│   │   ├── authentication/     # Auth handling
-│   │   └── endpoints/          # API endpoint implementations
-│   ├── app/                    # Application core
-│   │   ├── auth_storage.rs     # Secure credential storage
-│   │   └── config.rs           # Configuration management
-│   ├── handlers/               # Command handlers
-│   │   ├── show/              # Show command implementations
-│   │   └── config/            # Config command implementations
-│   └── main.rs                 # Application entry point
-├── Cargo.toml                  # Project dependencies
-└── README.md                   # Project documentation
+├── Cargo.toml
+├── flake.nix                  # Nix flake for reproducible builds and dev shell
+├── README.md
+├── docs/
+│   └── ADDING_COMMANDS.md     # Developer reference: adding new show commands
+└── src/
+    ├── main.rs                # Entry point: one-liner vs. REPL dispatch, history setup
+    ├── api/                   # Serde structs + async HTTP fetch functions
+    │   ├── mod.rs
+    │   ├── advisory/mod.rs
+    │   ├── authentication/
+    │   │   ├── mod.rs
+    │   │   └── auth.rs        # Token struct, authenticate()
+    │   ├── clients/
+    │   │   ├── mod.rs
+    │   │   ├── clientlist.rs
+    │   │   ├── clientproximity.rs
+    │   │   ├── getclientdetail.rs
+    │   │   └── getclientenrichment.rs
+    │   ├── commandrunner/mod.rs
+    │   ├── devices/
+    │   │   ├── mod.rs
+    │   │   ├── compliance.rs
+    │   │   ├── devicecount.rs
+    │   │   ├── devicedetailenrichment.rs
+    │   │   ├── devicehealth.rs
+    │   │   └── getdevicelist.rs
+    │   ├── discovery/mod.rs
+    │   ├── eox/mod.rs
+    │   ├── health/mod.rs
+    │   ├── issues/
+    │   │   ├── mod.rs
+    │   │   └── getissuelist.rs
+    │   ├── networksettings/mod.rs
+    │   ├── pathanalysis/mod.rs
+    │   ├── platform/mod.rs
+    │   ├── sites/
+    │   │   ├── mod.rs
+    │   │   ├── getsitelist.rs
+    │   │   └── sitehealth.rs
+    │   ├── tags/mod.rs
+    │   ├── task/mod.rs
+    │   ├── topology/mod.rs
+    │   └── wireless/
+    │       ├── mod.rs
+    │       ├── accesspointconfig.rs
+    │       ├── rfprofile.rs
+    │       └── ssids.rs
+    ├── app/                   # Application-level concerns
+    │   ├── mod.rs
+    │   ├── auth_storage.rs    # AES-GCM credential encryption/SQLite storage
+    │   ├── config.rs          # Config struct, load/save/setup wizard, cert helpers
+    │   ├── update.rs          # Binary self-update logic
+    │   └── windows_setup.rs
+    ├── commands/              # Clap subcommand definitions (no logic)
+    │   ├── mod.rs             # Top-level Commands enum, route_command()
+    │   ├── run.rs             # RunCommands, CommandRunnerCommands
+    │   ├── app/
+    │   │   ├── mod.rs         # AppCommands
+    │   │   ├── config.rs      # AppConfigCommands
+    │   │   └── update.rs
+    │   ├── config/
+    │   │   ├── mod.rs
+    │   │   └── commands.rs
+    │   └── show/
+    │       ├── mod.rs         # ShowCommands enum
+    │       ├── advisory.rs
+    │       ├── ap.rs
+    │       ├── client.rs
+    │       ├── device.rs
+    │       ├── discovery.rs
+    │       ├── eox.rs
+    │       ├── health.rs
+    │       ├── issue.rs
+    │       ├── networksettings.rs
+    │       ├── path.rs
+    │       ├── platform.rs
+    │       ├── site.rs
+    │       ├── tag.rs
+    │       ├── task.rs
+    │       ├── topology.rs
+    │       └── wireless.rs
+    ├── handlers/              # Business logic dispatched by route_command()
+    │   ├── mod.rs
+    │   ├── run.rs
+    │   ├── app/
+    │   │   ├── mod.rs
+    │   │   ├── config.rs
+    │   │   └── update.rs
+    │   ├── config/
+    │   │   ├── mod.rs
+    │   │   └── repl.rs
+    │   └── show/
+    │       ├── mod.rs
+    │       ├── advisory.rs
+    │       ├── ap.rs
+    │       ├── client.rs
+    │       ├── device.rs
+    │       ├── discovery.rs
+    │       ├── eox.rs
+    │       ├── health.rs
+    │       ├── issue.rs
+    │       ├── networksettings.rs
+    │       ├── path.rs
+    │       ├── platform.rs
+    │       ├── site.rs
+    │       ├── tag.rs
+    │       ├── task.rs
+    │       ├── topology.rs
+    │       └── wireless.rs
+    └── helpers/               # Cross-cutting utilities
+        ├── mod.rs
+        ├── command_utils.rs   # execute_with_context(), CommandContext
+        ├── http.rs            # build_client() with custom cert loading
+        ├── output.rs          # OutputFormat enum, is_json(), print_json()
+        └── utils.rs           # print_* table/JSON functions for each data type
 ```
 
-## Development Setup
+---
 
-1. **Environment Setup**
+## Development setup
+
+### Standard (cargo)
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/catalysh.git
+# Linux prerequisites
+sudo apt-get install pkg-config libssl-dev
+
+# macOS — OpenSSL via Homebrew if needed
+brew install openssl
+
+git clone https://github.com/hexabyte8/catalysh.git
 cd catalysh
-
-# Install Rust if needed
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Build the project
 cargo build
 ```
 
-2. **Development Dependencies**
-- Rust 1.56 or newer
-- SQLite development libraries
-- OpenSSL development libraries
+### NixOS / nix develop
 
-## Command Flow Architecture
+```bash
+git clone https://github.com/hexabyte8/catalysh.git
+cd catalysh
+nix develop   # drops you into a shell with Rust, clippy, rustfmt, cargo-watch, openssl
+cargo build
+```
 
-catalysh uses a Clap-based command routing system:
+The dev shell sets `PKG_CONFIG_PATH`, `OPENSSL_DIR`, and `OPENSSL_LIB_DIR` automatically.
 
-1. Commands are defined as variants in a root Commands enum
-2. Clap handles command-line argument parsing using derive macros
-3. Commands are routed via pattern matching on the enum variants
-4. Each command implementation lives in its own module
-5. The command execution flow is:
-- Parse command line args -> Commands enum
-- Match on Commands variant
-- Execute specific command implementation
-- Return result
+### Useful dev commands
 
-## Adding New Commands
+```bash
+cargo build                         # debug build
+cargo test                          # run tests
+cargo clippy --all-targets -- -D warnings   # lint
+cargo fmt --all                     # format
+cargo watch -x check                # watch mode (requires cargo-watch)
+```
 
-### 1. Command Structure Overview
+---
 
-Commands in catalysh follow a modular structure with three main types:
-- Show commands (data display)
-- App commands (application control)
-- Config commands (configuration REPL)
+## Architecture overview
 
-### 2. Command Implementation Steps
+catalysh is built in four layers. Every API-backed `show` command touches all four in the same pattern:
 
-#### Command Enum Definition
+### Layer 1 — API (`src/api/<category>/`)
+
+Pure data: serde structs (`Deserialize + Serialize`) and `async fn` that call `crate::helpers::http::build_client()` to construct a `reqwest::Client` (respecting `verify_ssl` and loading custom CA certificates), then perform the HTTP request and deserialize the response.
 
 ```rust
-// src/commands/mod.rs
-#[derive(Subcommand, Debug)]
-pub enum Commands {
-    /// Your command's help text
-    YourCommand {
-        #[clap(long, short)]
-        parameter: String,
+// src/api/sites/getsitelist.rs
+use crate::helpers::http;
+
+pub async fn get_all_sites(config: &Config, token: &Token) -> Result<Vec<Site>> {
+    let client = http::build_client(config)?;
+    let url = format!("{}/dna/intent/api/v1/site", config.dnac_url);
+    let resp = client.get(&url).header("X-Auth-Token", &token.value).send().await?;
+    // ...
+}
+```
+
+**Do not** construct a `reqwest::Client` directly; always use `http::build_client(config)` so custom certificates are picked up automatically.
+
+### Layer 2 — Commands (`src/commands/show/<category>.rs`)
+
+Clap `Subcommand` enums only — no logic. Each variant maps to one leaf command and declares its arguments with `#[arg(...)]` or nested `#[command(subcommand)]`.
+
+```rust
+// src/commands/show/site.rs
+#[derive(Debug, Subcommand)]
+pub enum SiteCommands {
+    /// List all sites
+    List,
+    /// Show site health scores
+    Health {
+        #[arg(long)]
+        site_type: Option<String>,
     },
 }
 ```
 
-#### Command Implementation
+### Layer 3 — Handlers (`src/handlers/show/<category>.rs`)
+
+Bridge between the parsed command and the API. Always call `command_utils::execute_with_context` — it creates a Tokio runtime, loads config, authenticates, and hands you a `CommandContext` with `.config` and `.token`. Then dispatch to the API function and call the appropriate `utils::print_*` helper.
 
 ```rust
-impl Commands {
-    pub async fn execute(self) -> Result<()> {
-        match self {
-            Commands::YourCommand { parameter } => {
-                // Command implementation here
+// src/handlers/show/site.rs
+pub fn handle_site_command(subcommand: SiteCommands) {
+    command_utils::execute_with_context(|ctx| async move {
+        match subcommand {
+            SiteCommands::List => {
+                let sites = getsitelist::get_all_sites(&ctx.config, &ctx.token).await?;
+                utils::print_sites(sites);
             }
+            SiteCommands::Health { site_type } => { /* ... */ }
         }
-    }
+        Ok(())
+    });
 }
 ```
 
-#### Command Routing
+### Layer 4 — Print helpers (`src/helpers/utils.rs`)
+
+One `print_*` function per data type. Every function must check `crate::helpers::output::is_json()` first and delegate to `crate::helpers::output::print_json()` when true; otherwise render a `prettytable` table.
 
 ```rust
-#[tokio::main]
-async fn main() -> Result<()> {
-    let cli = Cli::parse();
-    
-    match cli.command {
-        Commands::YourCommand { parameter } => {
-            // Route to your command implementation
-        }
+pub fn print_sites(sites: Vec<Site>) {
+    if crate::helpers::output::is_json() {
+        crate::helpers::output::print_json(&sites);
+        return;
     }
+    let mut table = Table::new();
+    table.add_row(row!["Name", "Hierarchy"]);
+    for site in sites {
+        table.add_row(row![
+            site.name.as_deref().unwrap_or("N/A"),
+            site.site_name_hierarchy.as_deref().unwrap_or("N/A"),
+        ]);
+    }
+    table.set_format(*format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
+    table.printstd();
 }
 ```
 
-### 3. API Integration
+---
 
-#### API Structure
+## Adding a new command
+
+The step-by-step developer guide with full code examples is in [docs/ADDING_COMMANDS.md](docs/ADDING_COMMANDS.md).
+
+---
+
+## Output format support
+
+Every `print_*` function in `src/helpers/utils.rs` **must** support both table and JSON output:
 
 ```rust
-// src/api/your_category/mod.rs
-pub struct YourApiEndpoint {
-    client: HttpClient,
-}
-
-impl YourApiEndpoint {
-    pub async fn fetch_data(&self, params: &RequestParams) -> ApiResult<Response> {
-        let response = self.client
-            .get(&self.endpoint_url())
-            .query(params)
-            .send()
-            .await?;
-        
-        response.json::<ResponseType>().await
+pub fn print_my_data(items: Vec<MyStruct>) {
+    if crate::helpers::output::is_json() {
+        crate::helpers::output::print_json(&items);  // pretty JSON to stdout
+        return;
     }
+    // ... prettytable rendering ...
 }
 ```
 
-#### Response Handling
+`MyStruct` must derive `Serialize` (in addition to `Deserialize`) so `print_json` can serialise it. If the struct is defined in `src/api/`, add `#[derive(Serialize)]` there; `Deserialize` is always required for API responses.
 
-```rust
-#[derive(Deserialize)]
-pub struct ApiResponse {
-    #[serde(rename = "response")]
-    data: Vec<DataItem>,
-}
+---
 
-impl From<ApiResponse> for DisplayableOutput {
-    fn from(response: ApiResponse) -> Self {
-        // Transform API response to display format
-    }
-}
+## Code style
+
+- **Formatting**: `cargo fmt --all`. PRs with formatting changes will not be merged.
+- **Linting**: `cargo clippy --all-targets --all-features -- -D warnings`. All warnings are treated as errors in CI.
+- **Comments**: Add comments only where the code is genuinely non-obvious. Avoid restating what the code already says.
+- **`unwrap()`**: Avoid in library/handler code. Use `?` propagation or `anyhow::Context` for error context. `unwrap()` is acceptable in tests.
+
+---
+
+## CI/CD
+
+### What runs on every PR
+
+| Check | Command |
+|---|---|
+| Formatting | `cargo fmt --all -- --check` |
+| Linting | `cargo clippy --all-targets --all-features -- -D warnings` |
+| Tests | `cargo test --all-features --verbose` |
+| Build matrix | `cargo build` for linux-gnu, linux-musl, linux-aarch64, macos-x86_64, macos-aarch64, windows-x86_64 |
+
+All checks must pass before a PR can be merged.
+
+### Release process
+
+1. Bump `version` in `Cargo.toml`.
+2. Create and push a tag matching the version: `git tag v0.x.y && git push origin v0.x.y`.
+3. The release workflow validates that the tag matches `Cargo.toml`, then builds release binaries for all six targets, generates SHA-256 checksums, and publishes a GitHub Release with all assets attached.
+4. After the GitHub Release is published, publish to crates.io: `cargo publish`.
+
+---
+
+## Pull request process
+
+### Branch naming
+
+```
+feat/<short-description>     # new feature or command
+fix/<short-description>      # bug fix
+docs/<short-description>     # documentation only
+refactor/<short-description> # code change with no functional difference
 ```
 
-### 4. Adding a New Command
+### Commit messages
 
-1. Define the command variant in the Commands enum
-2. Add command parameters with Clap attributes
-3. Implement the command execution in the match arm:
+Use the imperative mood in the subject line (`Add show eox summary command`, not `Added` or `Adding`). Keep the subject under 72 characters. Reference issues with `Fixes #N` in the body when applicable.
 
-```rust
-// In src/commands/mod.rs
-#[derive(Subcommand, Debug)]
-pub enum Commands {
-    ExistingCommand { /* ... */ },
-    // Add your new command:
-    NewCommand {
-        #[clap(long, short)]
-        parameter: String,
-    }
-}
+### What reviewers check
 
-impl Commands {
-    pub async fn execute(self) -> Result<()> {
-        match self {
-            // Add your command's execution:
-            Commands::NewCommand { parameter } => {
-                // Implementation here
-            }
-        }
-    }
-}
-```
-
-### 5. Testing Strategy
-
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::test_utils::mock_api;
-
-    #[test]
-    fn test_command_execution() {
-        let mock_client = mock_api::setup();
-        let handler = YourCommandHandler::new(mock_client);
-        
-        let result = handler.execute(&["arg1", "arg2"]);
-        assert!(result.is_ok());
-    }
-}
-```
-
-## Code Style Guidelines
-
-1. **Rust Conventions**
-- Follow Rust naming conventions
-- Use `rustfmt` for formatting
-- Run `cargo clippy` for linting
-
-2. **Error Handling**
-- Use `Result` types for error handling
-- Implement custom errors when needed
-- Provide meaningful error messages
-
-3. **Documentation**
-- Document all public APIs
-- Include examples in documentation
-- Keep README and CONTRIBUTING up to date
-
-## Pull Request Process
-
-1. **Before Submitting**
-- Create a new branch for your feature
-- Write tests for new functionality
-- Update documentation as needed
-
-2. **Submission Guidelines**
-- Provide clear PR description
-- Reference any related issues
-- Ensure all tests pass
-- Follow up on review comments
-
-3. **Review Process**
-- Code review by maintainers
-- CI checks must pass
-- Documentation review
-- Final approval and merge
-
-## Development Workflow
-
-1. **Creating Features**
-
-```bash
-# Create feature branch
-git checkout -b feature/your-feature-name
-
-# Make changes and commit
-git commit -m "feat: add new feature"
-
-# Push to remote
-git push origin feature/your-feature-name
-```
-
-2. **Testing**
-
-```bash
-# Run tests
-cargo test
-
-# Run linter
-cargo clippy
-
-# Check formatting
-cargo fmt --check
-```
-
-Thank you for contributing to catalysh!
-
+- All CI checks pass.
+- New commands follow the four-layer pattern described above.
+- `print_*` functions support both `table` and `json` output.
+- No direct `reqwest::Client::builder()` calls — use `http::build_client(config)`.
+- `execute_with_context` is used for all API-backed commands (no manual Tokio runtime creation).
+- Help strings on all `#[arg]` and `#[command]` entries are clear and complete.
+- No `unwrap()` in non-test code without justification.
