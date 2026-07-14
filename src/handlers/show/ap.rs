@@ -2,16 +2,33 @@
 
 use crate::api::wireless::{accesspointconfig, rfprofile};
 use crate::commands::show::ap::ApCommands;
-use crate::helpers::{command_utils, utils};
-use log::error;
+use crate::helpers::{command_utils, resolver, utils};
+use log::{error, info};
 use prettytable::{row, table};
 
 pub fn handle_ap_command(subcommand: ApCommands) {
     command_utils::execute_with_context(|ctx| async move {
         match subcommand {
-            ApCommands::Config { mac_address } => {
+            ApCommands::Config { selector } => {
+                // Resolve the selector (hostname / IP / any MAC) to the AP's ethernet MAC
+                let eth_mac = match resolver::resolve_ap_ethernet_mac(
+                    &ctx.config,
+                    &ctx.token,
+                    &selector,
+                )
+                .await
+                {
+                    Ok(mac) => mac,
+                    Err(e) => {
+                        error!("Could not resolve device '{}': {}", selector, e);
+                        return Ok(());
+                    }
+                };
+
+                info!("Resolved '{}' → ethernet MAC {}", selector, eth_mac);
+
                 // Fetch AP config
-                match accesspointconfig::get_ap_config(&ctx.config, &ctx.token, &mac_address).await
+                match accesspointconfig::get_ap_config(&ctx.config, &ctx.token, &eth_mac).await
                 {
                     Ok(ap_config) => {
                         utils::print_ap_config(ap_config);

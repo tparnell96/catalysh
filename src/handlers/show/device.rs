@@ -4,7 +4,7 @@ use crate::api::devices::{compliance, devicecount, devicedetailenrichment, devic
 use crate::commands::show::device::{
     DeviceCommands, DeviceDetailFilter, DeviceEnrichmentFilter, DeviceListFilter,
 };
-use crate::helpers::{command_utils, utils};
+use crate::helpers::{command_utils, resolver, utils};
 use chrono::DateTime;
 use log::error;
 use prettytable::{row, Table};
@@ -75,35 +75,76 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                 }
             }
             DeviceCommands::Detail { filter } => {
-                // Fetch all devices
-                match getdevicelist::get_all_devices(&ctx.config, &ctx.token).await {
-                    Ok(devices) => {
-                        // Find the device matching the filter
-                        let device_option = match filter {
-                            DeviceDetailFilter::Hostname { ref hostname } => devices
-                                .into_iter()
-                                .find(|device| device.hostname.as_deref() == Some(hostname)),
-                            DeviceDetailFilter::Mac { ref mac_address } => devices
-                                .into_iter()
-                                .find(|device| device.mac_address.as_deref() == Some(mac_address)),
-                            DeviceDetailFilter::Ip { ref ip_address } => {
-                                devices.into_iter().find(|device| {
-                                    device.management_ip_address.as_deref() == Some(ip_address)
-                                })
-                            }
-                        };
-
-                        match device_option {
-                            Some(device) => utils::print_device_detail(device),
-                            None => println!("No device found matching the specified criteria."),
-                        }
+                // Handle the `by` variant via the resolver; legacy variants do their own lookup
+                if let DeviceDetailFilter::By { ref selector } = filter {
+                    match resolver::resolve_device(&ctx.config, &ctx.token, selector).await {
+                        Ok(device) => utils::print_device_detail(device),
+                        Err(e) => error!("Could not resolve device '{}': {}", selector, e),
                     }
-                    Err(e) => error!("Failed to retrieve devices: {}", e),
+                } else {
+                    match getdevicelist::get_all_devices(&ctx.config, &ctx.token).await {
+                        Ok(devices) => {
+                            let device_option = match filter {
+                                DeviceDetailFilter::By { .. } => unreachable!(),
+                                DeviceDetailFilter::Hostname { ref hostname } => devices
+                                    .into_iter()
+                                    .find(|d| d.hostname.as_deref() == Some(hostname)),
+                                DeviceDetailFilter::Mac { ref mac_address } => devices
+                                    .into_iter()
+                                    .find(|d| d.mac_address.as_deref() == Some(mac_address)),
+                                DeviceDetailFilter::Ip { ref ip_address } => {
+                                    devices.into_iter().find(|d| {
+                                        d.management_ip_address.as_deref() == Some(ip_address)
+                                    })
+                                }
+                            };
+
+                            match device_option {
+                                Some(device) => utils::print_device_detail(device),
+                                None => println!("No device found matching the specified criteria."),
+                            }
+                        }
+                        Err(e) => error!("Failed to retrieve devices: {}", e),
+                    }
                 }
             }
             DeviceCommands::Enrichment { filter } => {
-                // Handle the Enrichment command
+                // Handle the `by` variant via the resolver; legacy variants pass through directly
                 match filter {
+                    DeviceEnrichmentFilter::By { selector } => {
+                        // Resolve the device to determine the best entity type
+                        match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
+                            Ok(device) => {
+                                // Prefer IP for enrichment (more reliable than MAC)
+                                let (entity_type, entity_value) =
+                                    if let Some(ref ip) = device.management_ip_address {
+                                        ("ip_address", ip.clone())
+                                    } else if let Some(ref mac) = device.mac_address {
+                                        ("mac_address", mac.clone())
+                                    } else {
+                                        error!(
+                                            "Resolved device has neither IP nor MAC — cannot enrich"
+                                        );
+                                        return Ok(());
+                                    };
+                                match devicedetailenrichment::get_device_enrichment(
+                                    &ctx.config,
+                                    &ctx.token,
+                                    entity_type,
+                                    &entity_value,
+                                )
+                                .await
+                                {
+                                    Ok(details) => utils::print_device_enrichment(details),
+                                    Err(e) => error!(
+                                        "Failed to retrieve device enrichment details: {}",
+                                        e
+                                    ),
+                                }
+                            }
+                            Err(e) => error!("Could not resolve device '{}': {}", selector, e),
+                        }
+                    }
                     DeviceEnrichmentFilter::Mac { mac_address } => {
                         match devicedetailenrichment::get_device_enrichment(
                             &ctx.config,

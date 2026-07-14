@@ -58,6 +58,11 @@ pub enum DeviceListFilter {
 
 #[derive(Debug, Subcommand)]
 pub enum DeviceDetailFilter {
+    /// Show device detail by any identifier (hostname, IP, or MAC)
+    By {
+        /// Hostname, management IP address, or MAC address
+        selector: String,
+    },
     /// Show device detail by hostname
     Hostname {
         /// The hostname of the device
@@ -77,6 +82,11 @@ pub enum DeviceDetailFilter {
 
 #[derive(Debug, Subcommand)]
 pub enum DeviceEnrichmentFilter {
+    /// Enrichment by any identifier (hostname, IP, or MAC) — entity type is auto-detected
+    By {
+        /// Hostname, management IP address, or MAC address
+        selector: String,
+    },
     /// Enrichment by MAC address
     Mac {
         /// The MAC address of the device

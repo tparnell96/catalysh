@@ -12,9 +12,10 @@ pub enum RunCommands {
 
 #[derive(Debug, Subcommand)]
 pub enum CommandRunnerCommands {
-    /// Execute read-only CLI commands on devices
+    /// Execute read-only CLI commands on devices.
+    /// --devices accepts comma-separated device UUIDs, hostnames, IPs, or MACs.
     Exec {
-        /// Comma-separated device UUIDs
+        /// Comma-separated device identifiers (UUID, hostname, IP, or MAC)
         #[arg(long)]
         devices: String,
         /// Commands to execute (space-separated)

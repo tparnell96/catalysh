@@ -4,10 +4,10 @@ use clap::Subcommand;
 
 #[derive(Debug, Subcommand)]
 pub enum ApCommands {
-    /// Show AP configuration by MAC address
+    /// Show AP configuration — accepts hostname, management IP, or any MAC address format
     Config {
-        /// MAC address of the AP
-        mac_address: String,
+        /// Hostname, management IP, ethernet MAC, or radio MAC of the AP
+        selector: String,
     },
     /// Show all RF profiles
     RfProfile,
