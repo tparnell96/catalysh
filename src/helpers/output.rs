@@ -28,7 +28,7 @@ pub fn is_json() -> bool {
 }
 
 /// Serialize `value` as pretty JSON to stdout, or print an error on failure.
-pub fn print_json<T: serde::Serialize>(value: &T) {
+pub fn print_json<T: serde::Serialize + ?Sized>(value: &T) {
     match serde_json::to_string_pretty(value) {
         Ok(s) => println!("{}", s),
         Err(e) => eprintln!("JSON serialization error: {}", e),

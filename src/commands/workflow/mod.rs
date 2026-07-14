@@ -4,6 +4,11 @@ use clap::Subcommand;
 
 #[derive(Debug, Subcommand)]
 pub enum WorkflowCommands {
+    /// AP provisioning and factory-reset workflows
+    Ap {
+        #[command(subcommand)]
+        subcommand: ApWorkflowCommands,
+    },
     /// PnP (Plug-and-Play) onboarding workflows
     Pnp {
         #[command(subcommand)]
@@ -18,6 +23,37 @@ pub enum WorkflowCommands {
     Replacement {
         #[command(subcommand)]
         subcommand: ReplacementCommands,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum ApWorkflowCommands {
+    /// Provision an AP to a site
+    Provision {
+        /// AP identifier: hostname, ethernet MAC, or IP
+        #[arg(long)]
+        ap: String,
+        /// Full site hierarchy (e.g. "Global/Building1/Floor2")
+        #[arg(long)]
+        site: String,
+        /// RF profile name (e.g. "HIGH")
+        #[arg(long, default_value = "HIGH")]
+        rf_profile: String,
+    },
+    /// Get AP provision status for a wireless controller
+    Status {
+        /// WLC selector: hostname, IP, or MAC
+        #[arg(long)]
+        controller: String,
+    },
+    /// Factory reset one or more APs
+    FactoryReset {
+        /// Comma-separated AP selectors (hostname, IP, or ethernet MAC)
+        #[arg(long)]
+        aps: String,
+        /// Keep static IP configuration
+        #[arg(long, default_value = "false")]
+        keep_static_ip: bool,
     },
 }
 

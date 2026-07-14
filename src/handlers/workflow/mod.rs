@@ -1,20 +1,137 @@
 // src/handlers/workflow/mod.rs
 
-use crate::api::workflows::{diagnostic, pnp, replacement};
+use crate::api::workflows::{approvision, diagnostic, pnp, replacement};
 use crate::commands::workflow::{
-    DiagnosticCommands, PnpCommands, ReplacementCommands, WorkflowCommands,
+    ApWorkflowCommands, DiagnosticCommands, PnpCommands, ReplacementCommands, WorkflowCommands,
 };
-use crate::helpers::{command_utils, output};
+use crate::helpers::{command_utils, output, resolver};
 use chrono::DateTime;
 use log::error;
 use prettytable::{row, Table};
 
 pub fn handle_workflow_command(subcommand: WorkflowCommands) {
     match subcommand {
+        WorkflowCommands::Ap { subcommand } => handle_ap_workflow(subcommand),
         WorkflowCommands::Pnp { subcommand } => handle_pnp(subcommand),
         WorkflowCommands::Diagnostic { subcommand } => handle_diagnostic(subcommand),
         WorkflowCommands::Replacement { subcommand } => handle_replacement(subcommand),
     }
+}
+
+// ── AP Provisioning ────────────────────────────────────────────────────────────
+
+fn handle_ap_workflow(subcommand: ApWorkflowCommands) {
+    command_utils::execute_with_context(|ctx| async move {
+        match subcommand {
+            ApWorkflowCommands::Provision { ap, site, rf_profile } => {
+                let ap_mac = match resolver::resolve_ap_ethernet_mac(&ctx.config, &ctx.token, &ap).await
+                {
+                    Ok(mac) => mac,
+                    Err(e) => {
+                        error!("Could not resolve AP '{}': {}", ap, e);
+                        return Ok(());
+                    }
+                };
+
+                match approvision::provision_ap(
+                    &ctx.config,
+                    &ctx.token,
+                    &ap_mac,
+                    &site,
+                    &rf_profile,
+                    &ap,
+                )
+                .await
+                {
+                    Ok(task_id) => {
+                        println!("AP provision submitted.");
+                        println!("  Task ID: {}", task_id);
+                        println!("\nUse `show task get {}` to track progress.", task_id);
+                    }
+                    Err(e) => error!("Failed to provision AP '{}': {}", ap, e),
+                }
+            }
+            ApWorkflowCommands::Status { controller } => {
+                let controller_id =
+                    match resolver::resolve_device_id(&ctx.config, &ctx.token, &controller).await {
+                        Ok(id) => id,
+                        Err(e) => {
+                            error!("Could not resolve controller '{}': {}", controller, e);
+                            return Ok(());
+                        }
+                    };
+
+                match approvision::get_provision_status(&ctx.config, &ctx.token, &controller_id).await
+                {
+                    Ok(status) => {
+                        if output::is_json() {
+                            output::print_json(&status);
+                        } else {
+                            let mut table = Table::new();
+                            table.add_row(row![FbFy => "Field", "Value"]);
+                            let response = status.response.as_ref();
+                            table.add_row(row![
+                                "Controller UUID",
+                                controller_id
+                            ]);
+                            table.add_row(row![
+                                "Status",
+                                response
+                                    .and_then(|resp| resp.status.as_deref())
+                                    .unwrap_or("—")
+                            ]);
+                            table.add_row(row![
+                                "Provision Details",
+                                response
+                                    .and_then(|resp| resp.provision_details.as_ref())
+                                    .map(|details| details.to_string())
+                                    .unwrap_or_else(|| "—".to_string())
+                            ]);
+                            table.printstd();
+                        }
+                    }
+                    Err(e) => error!(
+                        "Failed to retrieve AP provision status for controller '{}': {}",
+                        controller, e
+                    ),
+                }
+            }
+            ApWorkflowCommands::FactoryReset { aps, keep_static_ip } => {
+                let _keep_static_ip = keep_static_ip;
+                let selectors: Vec<String> = aps
+                    .split(',')
+                    .map(|selector| selector.trim().to_string())
+                    .filter(|selector| !selector.is_empty())
+                    .collect();
+
+                if selectors.is_empty() {
+                    error!("No AP selectors were provided.");
+                    return Ok(());
+                }
+
+                let mut mac_addresses = Vec::with_capacity(selectors.len());
+                for selector in &selectors {
+                    match resolver::resolve_ap_ethernet_mac(&ctx.config, &ctx.token, selector).await {
+                        Ok(mac) => mac_addresses.push(mac),
+                        Err(e) => {
+                            error!("Could not resolve AP '{}': {}", selector, e);
+                            return Ok(());
+                        }
+                    }
+                }
+
+                match approvision::factory_reset_ap(&ctx.config, &ctx.token, mac_addresses).await {
+                    Ok(task_id) => {
+                        println!("AP factory reset submitted.");
+                        println!("  Task ID: {}", task_id);
+                        println!("\nUse `show task get {}` to track progress.", task_id);
+                    }
+                    Err(e) => error!("Failed to submit AP factory reset: {}", e),
+                }
+            }
+        }
+        Ok(())
+    });
 }
 
 // ── PnP ─────────────────────────────────────────────────────────────────────

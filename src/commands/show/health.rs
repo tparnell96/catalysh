@@ -1,4 +1,3 @@
-// src/commands/show/health.rs
 use clap::Subcommand;
 
 #[derive(Debug, Subcommand)]
@@ -11,8 +10,8 @@ pub enum HealthCommands {
     },
     /// Show client health
     Client {
-        /// Optional site ID filter
+        /// Timestamp in milliseconds since epoch
         #[arg(long)]
-        site_id: Option<String>,
+        timestamp: Option<i64>,
     },
 }

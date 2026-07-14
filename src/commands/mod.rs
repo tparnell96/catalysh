@@ -1,11 +1,12 @@
 pub mod app;
 pub mod run;
 pub mod show;
+pub mod tui;
 pub mod workflow;
 
 use crate::handlers::{
-    clear_screen, handle_app_command, handle_run_command,
-    handle_show_command, handle_workflow_command,
+    clear_screen, handle_app_command, handle_run_command, handle_show_command,
+    handle_tui_command, handle_workflow_command,
 };
 use crate::helpers::output::OutputFormat;
 use clap::{Parser, Subcommand};
@@ -54,6 +55,11 @@ pub enum Commands {
         #[command(subcommand)]
         subcommand: app::AppCommands,
     },
+    /// Interactive TUI dashboards
+    Tui {
+        #[command(subcommand)]
+        subcommand: tui::TuiCommands,
+    },
     /// Clear the screen
     Clear,
     /// Exit the program
@@ -69,6 +75,7 @@ pub fn route_command(cli: Cli) {
         Commands::Run { subcommand } => handle_run_command(subcommand),
         Commands::Workflow { subcommand } => handle_workflow_command(subcommand),
         Commands::App { subcommand } => handle_app_command(subcommand),
+        Commands::Tui { subcommand } => handle_tui_command(subcommand),
         Commands::Clear => {
             if let Err(e) = clear_screen() {
                 error!("Failed to clear screen: {}", e);

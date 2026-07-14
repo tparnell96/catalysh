@@ -3,7 +3,7 @@
 use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -244,25 +244,15 @@ pub async fn get_client_detail(
     config: &Config,
     token: &Token,
     mac_address: &str,
+    timestamp_ms: Option<i64>,
 ) -> Result<ClientDetailResponse> {
     let client = http::build_client(config)?;
-
     let url = format!("{}/dna/intent/api/v1/client-detail", config.dnac_url);
+    let mut query = vec![("macAddress", mac_address.to_string())];
 
-    let resp = client
-        .get(&url)
-        .header("X-Auth-Token", &token.value)
-        .query(&[("macAddress", mac_address)])
-        .send()
-        .await?;
-
-    if !resp.status().is_success() {
-        return Err(anyhow!(
-            "Failed to retrieve client details: {}",
-            resp.status()
-        ));
+    if let Some(ts) = timestamp_ms {
+        query.push(("timestamp", ts.to_string()));
     }
 
-    let client_detail_response = resp.json::<ClientDetailResponse>().await?;
-    Ok(client_detail_response)
+    http::get_authenticated_with_query(&client, config, token, &url, &query).await
 }

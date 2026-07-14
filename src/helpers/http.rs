@@ -81,3 +81,40 @@ where
         return Ok(resp.json::<T>().await?);
     }
 }
+
+
+/// Send an authenticated GET request with query parameters, reauthenticating once on 401.
+pub async fn get_authenticated_with_query<T, Q>(
+    client: &Client,
+    config: &Config,
+    token: &Token,
+    url: &str,
+    query: &Q,
+) -> Result<T>
+where
+    T: serde::de::DeserializeOwned,
+    Q: serde::Serialize + ?Sized,
+{
+    let mut current_token = token.clone();
+
+    loop {
+        let resp = client
+            .get(url)
+            .header("X-Auth-Token", &current_token.value)
+            .query(query)
+            .send()
+            .await?;
+
+        if resp.status() == reqwest::StatusCode::UNAUTHORIZED {
+            eprintln!("Token expired. Reauthenticating...");
+            current_token = auth::authenticate(config).await?;
+            continue;
+        }
+
+        if !resp.status().is_success() {
+            return Err(anyhow!("Request to {} failed: {}", url, resp.status()));
+        }
+
+        return Ok(resp.json::<T>().await?);
+    }
+}

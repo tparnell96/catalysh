@@ -4,6 +4,7 @@ mod helpers;
 
 mod commands;
 mod handlers;
+mod tui;
 
 use clap::Parser;
 use clap_repl::reedline::{DefaultPrompt, DefaultPromptSegment, FileBackedHistory};
