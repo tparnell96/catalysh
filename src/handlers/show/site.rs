@@ -1,10 +1,10 @@
 // src/handlers/show/site.rs
 
-use crate::api::sites::getsitelist;
+use crate::api::sites::{getsitelist, sitehealth};
 use crate::commands::show::site::SiteCommands;
 use crate::helpers::command_utils;
 use log::error;
-use prettytable::{row, table};
+use prettytable::{row, table, Table};
 
 pub fn handle_site_command(subcommand: SiteCommands) {
     command_utils::execute_with_context(|ctx| async move {
@@ -36,6 +36,35 @@ pub fn handle_site_command(subcommand: SiteCommands) {
                 }
                 Err(e) => error!("Failed to retrieve sites: {}", e),
             },
+            SiteCommands::Health { site_type } => {
+                match sitehealth::get_site_health(&ctx.config, &ctx.token, site_type.as_deref()).await {
+                    Ok(resp) => {
+                        if let Some(sites) = resp.response {
+                            let mut table = Table::new();
+                            table.add_row(row![
+                                "Site Name",
+                                "Site Type",
+                                "Network Health Avg",
+                                "Wired Client Health",
+                                "Wireless Client Health"
+                            ]);
+                            for s in sites {
+                                table.add_row(row![
+                                    s.site_name.as_deref().unwrap_or("N/A"),
+                                    s.site_type.as_deref().unwrap_or("N/A"),
+                                    s.network_health_average.as_ref().map(|v| v.to_string()).unwrap_or_else(|| "N/A".to_string()),
+                                    s.client_health_wired.as_ref().map(|v| v.to_string()).unwrap_or_else(|| "N/A".to_string()),
+                                    s.client_health_wireless.as_ref().map(|v| v.to_string()).unwrap_or_else(|| "N/A".to_string()),
+                                ]);
+                            }
+                            table.printstd();
+                        } else {
+                            println!("No site health data.");
+                        }
+                    }
+                    Err(e) => error!("Failed to retrieve site health: {}", e),
+                }
+            }
         }
         Ok(())
     });

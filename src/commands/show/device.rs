@@ -19,6 +19,20 @@ pub enum DeviceCommands {
         #[command(subcommand)]
         filter: DeviceEnrichmentFilter,
     },
+    /// Show total device count
+    Count,
+    /// Show device health scores
+    Health {
+        /// Optional device role filter (e.g. ACCESS, CORE, DISTRIBUTION, BORDER ROUTER)
+        #[arg(long)]
+        device_role: Option<String>,
+    },
+    /// Show device compliance status
+    Compliance {
+        /// Optional compliance type filter
+        #[arg(long)]
+        compliance_type: Option<String>,
+    },
 }
 
 #[derive(Debug, Subcommand)]

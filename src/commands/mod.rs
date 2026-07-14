@@ -1,9 +1,11 @@
 pub mod app;
 pub mod config;
+pub mod run;
 pub mod show;
 
 use crate::handlers::{
-    clear_screen, handle_app_command, handle_config_command, handle_show_command,
+    clear_screen, handle_app_command, handle_config_command, handle_run_command,
+    handle_show_command,
 };
 use clap::{Parser, Subcommand};
 use log::error;
@@ -25,6 +27,11 @@ pub enum Commands {
         #[command(subcommand)]
         subcommand: show::ShowCommands,
     },
+    /// Run commands on devices
+    Run {
+        #[command(subcommand)]
+        subcommand: run::RunCommands,
+    },
     /// Start configuration sub-REPL
     Config,
     /// App-specific commands
@@ -41,6 +48,7 @@ pub enum Commands {
 pub fn route_command(command: Commands) {
     match command {
         Commands::Show { subcommand } => handle_show_command(subcommand),
+        Commands::Run { subcommand } => handle_run_command(subcommand),
         Commands::Config => handle_config_command(),
         Commands::App { subcommand } => handle_app_command(subcommand),
         Commands::Clear => {

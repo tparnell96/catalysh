@@ -1,6 +1,17 @@
+pub mod advisory;
 pub mod authentication;
 pub mod clients;
+pub mod commandrunner;
 pub mod devices;
+pub mod discovery;
+pub mod eox;
+pub mod health;
 pub mod issues;
+pub mod networksettings;
+pub mod pathanalysis;
+pub mod platform;
 pub mod sites;
+pub mod tags;
+pub mod task;
+pub mod topology;
 pub mod wireless;

@@ -2,3 +2,4 @@
 
 pub mod accesspointconfig;
 pub mod rfprofile;
+pub mod ssids;
