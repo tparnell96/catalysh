@@ -4,10 +4,10 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::{anyhow, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct IssueListResponse {
@@ -16,7 +16,7 @@ pub struct IssueListResponse {
     pub response: Option<Vec<Issue>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct Issue {

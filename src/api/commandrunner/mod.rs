@@ -4,22 +4,22 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::{anyhow, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CommandRunnerTaskResponse {
     pub task_id: Option<String>,
     pub url: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CommandRunnerResponse {
     pub response: Option<CommandRunnerTaskResponse>,
     pub version: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct LegitReadsResponse {
     pub response: Option<Vec<String>>,
     pub version: Option<String>,

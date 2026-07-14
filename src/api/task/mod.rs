@@ -4,9 +4,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Task {
     pub id: Option<String>,
@@ -29,13 +29,13 @@ pub struct Task {
     pub result_location: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TaskListResponse {
     pub response: Option<Vec<Task>>,
     pub version: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TaskDetailResponse {
     pub response: Option<Task>,
     pub version: Option<String>,

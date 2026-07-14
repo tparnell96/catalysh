@@ -2,9 +2,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::{anyhow, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[allow(dead_code)]
 pub struct Site {
@@ -17,7 +17,7 @@ pub struct Site {
     pub additional_info: Option<Vec<serde_json::Value>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct SitesResponse {
     response: Vec<Site>,
 }

@@ -4,9 +4,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Tag {
     pub id: Option<String>,
@@ -17,13 +17,13 @@ pub struct Tag {
     pub instance_tenant_id: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TagListResponse {
     pub response: Option<Vec<Tag>>,
     pub version: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TagMembersResponse {
     pub response: Option<serde_json::Value>,

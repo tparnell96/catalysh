@@ -7,6 +7,7 @@ use crate::handlers::{
     clear_screen, handle_app_command, handle_config_command, handle_run_command,
     handle_show_command,
 };
+use crate::helpers::output::OutputFormat;
 use clap::{Parser, Subcommand};
 use log::error;
 
@@ -16,6 +17,17 @@ use log::error;
     about = "A command line interface for Cisco Catalyst Center"
 )]
 pub struct Cli {
+    /// Output format
+    #[arg(
+        long,
+        short = 'o',
+        global = true,
+        value_enum,
+        default_value = "table",
+        help = "Output format: table (default) or json"
+    )]
+    pub output: OutputFormat,
+
     #[command(subcommand)]
     pub command: Commands,
 }
@@ -45,8 +57,11 @@ pub enum Commands {
     Exit,
 }
 
-pub fn route_command(command: Commands) {
-    match command {
+pub fn route_command(cli: Cli) {
+    // Apply the output format globally before dispatching
+    crate::helpers::output::set(cli.output);
+
+    match cli.command {
         Commands::Show { subcommand } => handle_show_command(subcommand),
         Commands::Run { subcommand } => handle_run_command(subcommand),
         Commands::Config => handle_config_command(),

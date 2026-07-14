@@ -12,16 +12,20 @@ pub fn handle_tag_command(subcommand: TagCommands) {
                 match tags::list_tags(&ctx.config, &ctx.token, name.as_deref()).await {
                     Ok(resp) => {
                         if let Some(tag_list) = resp.response {
-                            let mut table = Table::new();
-                            table.add_row(row!["ID", "Name", "Description"]);
-                            for t in tag_list {
-                                table.add_row(row![
-                                    t.id.as_deref().unwrap_or("N/A"),
-                                    t.name.as_deref().unwrap_or("N/A"),
-                                    t.description.as_deref().unwrap_or("N/A"),
-                                ]);
+                            if crate::helpers::output::is_json() {
+                                crate::helpers::output::print_json(&tag_list);
+                            } else {
+                                let mut table = Table::new();
+                                table.add_row(row!["ID", "Name", "Description"]);
+                                for t in tag_list {
+                                    table.add_row(row![
+                                        t.id.as_deref().unwrap_or("N/A"),
+                                        t.name.as_deref().unwrap_or("N/A"),
+                                        t.description.as_deref().unwrap_or("N/A"),
+                                    ]);
+                                }
+                                table.printstd();
                             }
-                            table.printstd();
                         } else {
                             println!("No tags found.");
                         }
@@ -33,12 +37,16 @@ pub fn handle_tag_command(subcommand: TagCommands) {
                 match tags::get_tag_members(&ctx.config, &ctx.token, &tag_id).await {
                     Ok(resp) => {
                         if let Some(members) = resp.response {
-                            println!("Tag members for {}:", tag_id);
-                            println!(
-                                "{}",
-                                serde_json::to_string_pretty(&members)
-                                    .unwrap_or_else(|_| members.to_string())
-                            );
+                            if crate::helpers::output::is_json() {
+                                crate::helpers::output::print_json(&members);
+                            } else {
+                                println!("Tag members for {}:", tag_id);
+                                println!(
+                                    "{}",
+                                    serde_json::to_string_pretty(&members)
+                                        .unwrap_or_else(|_| members.to_string())
+                                );
+                            }
                         } else {
                             println!("No members found for tag.");
                         }

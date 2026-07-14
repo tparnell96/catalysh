@@ -4,9 +4,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NetworkSetting {
     pub instance_type: Option<String>,
@@ -20,7 +20,7 @@ pub struct NetworkSetting {
     pub inherited_group_name: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct NetworkSettingsResponse {
     pub response: Option<Vec<NetworkSetting>>,
     pub version: Option<String>,

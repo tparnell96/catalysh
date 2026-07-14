@@ -4,9 +4,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::{anyhow, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -15,7 +15,7 @@ pub enum StringOrNumber {
     Number(u64),
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -24,13 +24,13 @@ pub enum VlanId {
     Number(u64),
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
 pub struct ClientEnrichmentResponse(pub Vec<ClientEnrichment>);
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -40,7 +40,7 @@ pub struct ClientEnrichment {
     pub issueDetails: Option<IssueDetails>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -95,7 +95,7 @@ pub struct UserDetails {
     // ... other fields as needed
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -105,7 +105,7 @@ pub struct HealthScore {
     pub score: Option<i32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -122,7 +122,7 @@ pub struct ConnectedDevice {
     pub mode: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -130,7 +130,7 @@ pub struct EnrichmentConnectedDevice {
     pub deviceDetails: Option<DeviceDetails>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -177,7 +177,7 @@ pub struct DeviceDetails {
     // ... other fields as needed
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -186,7 +186,7 @@ pub struct NeighborTopology {
     pub links: Option<Vec<TopologyLink>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -210,7 +210,7 @@ pub struct TopologyNode {
     pub fabricGroup: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -223,7 +223,7 @@ pub struct TopologyLink {
     pub portUtilization: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -244,7 +244,7 @@ pub struct Onboarding {
     pub latestRootCauseList: Option<Vec<String>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -252,7 +252,7 @@ pub struct IssueDetails {
     pub issue: Option<Vec<Issue>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -272,7 +272,7 @@ pub struct Issue {
     pub impactedHosts: Option<Vec<ImpactedHost>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]
@@ -281,7 +281,7 @@ pub struct SuggestedAction {
     pub steps: Option<Vec<String>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(unused_imports)]
@@ -298,7 +298,7 @@ pub struct ImpactedHost {
     pub timestamp: Option<i64>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 #[allow(dead_code)]

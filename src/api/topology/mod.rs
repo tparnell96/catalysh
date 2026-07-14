@@ -4,9 +4,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::{anyhow, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TopologyNode {
     pub label: Option<String>,
@@ -26,7 +26,7 @@ pub struct TopologyNode {
     pub custom_param: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TopologyLink {
     pub source: Option<String>,
@@ -41,18 +41,18 @@ pub struct TopologyLink {
     pub additional_info: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TopologyGraph {
     pub nodes: Option<Vec<TopologyNode>>,
     pub links: Option<Vec<TopologyLink>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PhysicalTopologyResponse {
     pub response: Option<TopologyGraph>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SiteTopologyNode {
     pub name: Option<String>,
@@ -64,17 +64,17 @@ pub struct SiteTopologyNode {
     pub site_type: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SiteTopologySites {
     pub sites: Option<Vec<SiteTopologyNode>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SiteTopologyResponse {
     pub response: Option<SiteTopologySites>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct VlanNamesResponse {
     pub response: Option<Vec<String>>,
 }

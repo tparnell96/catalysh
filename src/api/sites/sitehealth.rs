@@ -4,9 +4,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SiteHealth {
     pub site_name: Option<String>,
@@ -36,7 +36,7 @@ pub struct SiteHealth {
     pub longitude: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SiteHealthResponse {
     pub response: Option<Vec<SiteHealth>>,
     pub version: Option<String>,

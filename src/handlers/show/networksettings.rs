@@ -12,24 +12,28 @@ pub fn handle_networksettings_command(subcommand: NetworkSettingsCommands) {
                 match networksettings::get_global_network_settings(&ctx.config, &ctx.token).await {
                     Ok(resp) => {
                         if let Some(settings) = resp.response {
-                            let mut table = Table::new();
-                            table.add_row(row!["Instance Type", "Key", "Value"]);
-                            for s in settings {
-                                let value_str = s
-                                    .value
-                                    .as_ref()
-                                    .map(|v| {
-                                        serde_json::to_string(v)
-                                            .unwrap_or_else(|_| v.to_string())
-                                    })
-                                    .unwrap_or_else(|| "N/A".to_string());
-                                table.add_row(row![
-                                    s.instance_type.as_deref().unwrap_or("N/A"),
-                                    s.key.as_deref().unwrap_or("N/A"),
-                                    value_str,
-                                ]);
+                            if crate::helpers::output::is_json() {
+                                crate::helpers::output::print_json(&settings);
+                            } else {
+                                let mut table = Table::new();
+                                table.add_row(row!["Instance Type", "Key", "Value"]);
+                                for s in settings {
+                                    let value_str = s
+                                        .value
+                                        .as_ref()
+                                        .map(|v| {
+                                            serde_json::to_string(v)
+                                                .unwrap_or_else(|_| v.to_string())
+                                        })
+                                        .unwrap_or_else(|| "N/A".to_string());
+                                    table.add_row(row![
+                                        s.instance_type.as_deref().unwrap_or("N/A"),
+                                        s.key.as_deref().unwrap_or("N/A"),
+                                        value_str,
+                                    ]);
+                                }
+                                table.printstd();
                             }
-                            table.printstd();
                         } else {
                             println!("No network settings found.");
                         }

@@ -4,9 +4,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DnacRelease {
     pub version: Option<String>,
@@ -17,13 +17,13 @@ pub struct DnacRelease {
     pub core_packages_install_status: Option<Vec<serde_json::Value>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DnacReleaseResponse {
     pub response: Option<DnacRelease>,
     pub version: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DnacPackage {
     pub name: Option<String>,
@@ -31,7 +31,7 @@ pub struct DnacPackage {
     pub install_mode: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DnacPackagesResponse {
     pub response: Option<Vec<DnacPackage>>,
     pub version: Option<String>,

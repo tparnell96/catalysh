@@ -41,7 +41,7 @@ fn main() {
     // matching the nslookup pattern: no args = interactive REPL.
     if std::env::args().len() > 1 {
         match Cli::try_parse() {
-            Ok(cli) => route_command(cli.command),
+            Ok(cli) => route_command(cli),
             Err(e) => e.exit(),
         }
         return;
@@ -64,6 +64,6 @@ fn main() {
         .build();
 
     rl.repl(|cli| {
-        route_command(cli.command);
+        route_command(cli);
     });
 }

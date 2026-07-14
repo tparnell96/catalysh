@@ -4,9 +4,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ComplianceRecord {
     pub device_uuid: Option<String>,
@@ -24,7 +24,7 @@ pub struct ComplianceRecord {
     pub category: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ComplianceListResponse {
     pub response: Option<Vec<ComplianceRecord>>,
     pub version: Option<String>,

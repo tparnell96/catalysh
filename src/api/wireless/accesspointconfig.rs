@@ -4,9 +4,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::{anyhow, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct ApConfig {
@@ -48,7 +48,7 @@ pub struct ApConfig {
     pub internalKey: Option<InternalKey>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct RadioDTO {
@@ -89,7 +89,7 @@ pub struct RadioDTO {
     pub internalKey: Option<InternalKey>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct InternalKey {

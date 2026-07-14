@@ -2,9 +2,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[serde(rename_all = "camelCase")]
 #[allow(dead_code)]
@@ -56,7 +56,7 @@ pub struct AllDevices {
     pub id: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct DevicesResponse {
     response: Vec<AllDevices>,
 }

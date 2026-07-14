@@ -25,7 +25,10 @@ pub fn handle_ap_command(subcommand: ApCommands) {
                 // Fetch RF profiles
                 match rfprofile::get_all_rf_profiles(&ctx.config, &ctx.token).await {
                     Ok(profiles) => {
-                        println!("\nRF Profiles Overview:");
+                        if crate::helpers::output::is_json() {
+                            crate::helpers::output::print_json(&profiles);
+                        } else {
+                            println!("\nRF Profiles Overview:");
                         let mut overview_table = table!([FbFy =>
                             "Profile Name", "Default", "Channel Width", "Custom", "Brown Field",
                             "5GHz", "2.4GHz", "6GHz"
@@ -148,6 +151,7 @@ pub fn handle_ap_command(subcommand: ApCommands) {
                             }
                             println!("\n");
                         }
+                        } // end else (not JSON)
                     }
                     Err(e) => {
                         error!("Failed to retrieve RF profiles: {}", e);

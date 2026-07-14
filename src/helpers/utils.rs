@@ -19,6 +19,7 @@ use crate::api::clients::getclientenrichment::StringOrNumber;
 use crate::api::devices::devicedetailenrichment::DeviceDetails as DeviceDetailEnrichmentDeviceDetails;
 use crate::api::devices::getdevicelist::AllDevices;
 
+use crate::api::clients::clientlist::ClientListItem;
 use crate::api::devices::devicedetailenrichment::DeviceDetails;
 #[allow(unused_imports)]
 use crate::api::issues::getissuelist::{Issue as IssueListIssue, IssueListResponse};
@@ -33,6 +34,10 @@ pub fn current_timestamp() -> u64 {
 
 // Function to print a list of devices
 pub fn print_devices(devices: Vec<AllDevices>) {
+    if crate::helpers::output::is_json() {
+        crate::helpers::output::print_json(&devices);
+        return;
+    }
     let mut table = Table::new();
     table.add_row(row![
         "Hostname",
@@ -67,6 +72,10 @@ pub fn print_devices(devices: Vec<AllDevices>) {
 
 // Function to print detailed information about a device
 pub fn print_device_detail(device: AllDevices) {
+    if crate::helpers::output::is_json() {
+        crate::helpers::output::print_json(&device);
+        return;
+    }
     let mut table = Table::new();
     table.add_row(row!["Field", "Value"]);
 
@@ -99,6 +108,10 @@ pub fn print_device_detail(device: AllDevices) {
 
 // Function to print enriched device details
 pub fn print_device_enrichment(device_details: DeviceDetails) {
+    if crate::helpers::output::is_json() {
+        crate::helpers::output::print_json(&device_details);
+        return;
+    }
     let mut table = Table::new();
     table.add_row(row!["Field", "Value"]);
 
@@ -138,6 +151,10 @@ pub fn print_device_enrichment(device_details: DeviceDetails) {
 
 // Function to print client detail with all fields
 pub fn print_client_detail(response: ClientDetailResponse) {
+    if crate::helpers::output::is_json() {
+        crate::helpers::output::print_json(&response);
+        return;
+    }
     if let Some(detail) = response.detail {
         let mut table = Table::new();
         table.add_row(row!["Field", "Value"]);
@@ -427,6 +444,10 @@ fn add_field(table: &mut Table, field_name: &str, value: Option<String>) {
 }
 
 pub fn print_issue_list(response: IssueListResponse) {
+    if crate::helpers::output::is_json() {
+        crate::helpers::output::print_json(&response);
+        return;
+    }
     if let Some(issues) = response.response {
         let mut table = Table::new();
         table.add_row(row![
@@ -475,6 +496,10 @@ pub fn print_issue_list(response: IssueListResponse) {
 
 // Function to print AP configuration
 pub fn print_ap_config(ap_config: ApConfig) {
+    if crate::helpers::output::is_json() {
+        crate::helpers::output::print_json(&ap_config);
+        return;
+    }
     let mut table = Table::new();
     table.add_row(row!["Field", "Value"]);
 
@@ -719,6 +744,10 @@ pub fn print_ap_config(ap_config: ApConfig) {
 }
 
 pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
+    if crate::helpers::output::is_json() {
+        crate::helpers::output::print_json(&response.0);
+        return;
+    }
     println!("Number of enrichment records: {}", response.0.len());
 
     for enrichment in response.0 {
@@ -1085,4 +1114,47 @@ pub fn print_client_enrichment(response: ClientEnrichmentResponse) {
             println!("Issue Details Missing");
         }
     }
+}
+
+pub fn print_client_list(items: Vec<ClientListItem>) {
+    if crate::helpers::output::is_json() {
+        crate::helpers::output::print_json(&items);
+        return;
+    }
+    let mut table = Table::new();
+    table.add_row(row![
+        "MAC Address",
+        "Name",
+        "Type",
+        "IPv4",
+        "Connection Status",
+        "Health Score",
+        "SSID",
+        "Connected Device"
+    ]);
+    for item in items {
+        let health_score = item
+            .health
+            .as_ref()
+            .and_then(|h| h.overall_score)
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| "N/A".to_string());
+        let ssid = item
+            .connection
+            .as_ref()
+            .and_then(|c| c.ssid.clone())
+            .unwrap_or_else(|| "N/A".to_string());
+        table.add_row(row![
+            item.mac_address.as_deref().unwrap_or("N/A"),
+            item.name.as_deref().unwrap_or("N/A"),
+            item.client_type.as_deref().unwrap_or("N/A"),
+            item.ipv4_address.as_deref().unwrap_or("N/A"),
+            item.connection_status.as_deref().unwrap_or("N/A"),
+            health_score,
+            ssid,
+            item.connected_network_device_name.as_deref().unwrap_or("N/A"),
+        ]);
+    }
+    table.set_format(*format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
+    table.printstd();
 }

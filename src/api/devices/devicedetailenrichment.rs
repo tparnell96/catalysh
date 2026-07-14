@@ -4,16 +4,16 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::{anyhow, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct DeviceEnrichmentResponse {
     pub deviceDetails: DeviceDetails,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct DeviceDetails {
@@ -58,7 +58,7 @@ pub struct DeviceDetails {
     pub neighborTopology: Option<Vec<NeighborTopology>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct NeighborTopology {
@@ -66,7 +66,7 @@ pub struct NeighborTopology {
     pub links: Option<Vec<TopologyLink>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct TopologyNode {
@@ -90,7 +90,7 @@ pub struct TopologyNode {
     pub connectedDevice: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct TopologyLink {

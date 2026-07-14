@@ -4,9 +4,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::{anyhow, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FlowAnalysisSummary {
     pub id: Option<String>,
@@ -21,13 +21,13 @@ pub struct FlowAnalysisSummary {
     pub periodic_refresh: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FlowAnalysisListResponse {
     pub response: Option<Vec<FlowAnalysisSummary>>,
     pub version: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FlowAnalysisIdResult {
     pub flow_analysis_id: Option<String>,
@@ -35,13 +35,13 @@ pub struct FlowAnalysisIdResult {
     pub task_id: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FlowAnalysisTraceResponse {
     pub response: Option<FlowAnalysisIdResult>,
     pub version: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NetworkElementInfo {
     pub name: Option<String>,
@@ -52,7 +52,7 @@ pub struct NetworkElementInfo {
     pub role: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FlowAnalysisDetail {
     pub id: Option<String>,
@@ -68,7 +68,7 @@ pub struct FlowAnalysisDetail {
     pub periodic_refresh: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FlowAnalysisDetailResponse {
     pub response: Option<FlowAnalysisDetail>,
     pub version: Option<String>,

@@ -4,16 +4,16 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct EoxSummaryResponse {
     pub response: Option<HashMap<String, serde_json::Value>>,
     pub version: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EoxDevice {
     pub device_id: Option<String>,
@@ -29,13 +29,13 @@ pub struct EoxDevice {
     pub comments: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct EoxDevicesResponse {
     pub response: Option<Vec<EoxDevice>>,
     pub version: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct EoxDeviceDetailResponse {
     pub response: Option<EoxDevice>,
     pub version: Option<String>,

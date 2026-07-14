@@ -4,9 +4,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Advisory {
     pub advisory_id: Option<String>,
@@ -19,13 +19,13 @@ pub struct Advisory {
     pub id: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AdvisoryListResponse {
     pub response: Option<Vec<Advisory>>,
     pub version: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeviceAdvisory {
     pub advisory_id: Option<String>,
@@ -35,13 +35,13 @@ pub struct DeviceAdvisory {
     pub publication_url: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DeviceAdvisoryResponse {
     pub response: Option<Vec<DeviceAdvisory>>,
     pub version: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AdvisoryAggregateResponse {
     pub response: Option<serde_json::Value>,
     pub version: Option<String>,

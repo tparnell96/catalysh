@@ -4,9 +4,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
 use anyhow::{anyhow, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct ClientDetailResponse {
@@ -15,7 +15,7 @@ pub struct ClientDetailResponse {
     pub topology: Option<Topology>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct ClientDetail {
@@ -127,7 +127,7 @@ pub struct ClientDetail {
     pub trustDetails: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct HealthScore {
@@ -136,7 +136,7 @@ pub struct HealthScore {
     pub score: Option<f32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct ConnectedDevice {
@@ -152,7 +152,7 @@ pub struct ConnectedDevice {
     pub mode: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct Onboarding {
@@ -176,7 +176,7 @@ pub struct Onboarding {
     pub latestRootCauseList: Option<Vec<String>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct ConnectionInfo {
@@ -193,7 +193,7 @@ pub struct ConnectionInfo {
     pub timestamp: Option<u64>, // Changed from Option<String> to Option<u64>
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct Topology {
@@ -201,7 +201,7 @@ pub struct Topology {
     pub links: Option<Vec<TopologyLink>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct TopologyNode {
@@ -228,7 +228,7 @@ pub struct TopologyNode {
     pub ipv6: Option<Vec<String>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub struct TopologyLink {

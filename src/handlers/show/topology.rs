@@ -13,20 +13,24 @@ pub fn handle_topology_command(subcommand: TopologyCommands) {
                     Ok(resp) => {
                         if let Some(graph) = resp.response {
                             if let Some(nodes) = graph.nodes {
-                                let mut table = Table::new();
-                                table.add_row(row![
-                                    "Label", "IP", "Device Type", "Role", "Family"
-                                ]);
-                                for node in nodes {
+                                if crate::helpers::output::is_json() {
+                                    crate::helpers::output::print_json(&nodes);
+                                } else {
+                                    let mut table = Table::new();
                                     table.add_row(row![
-                                        node.label.as_deref().unwrap_or("N/A"),
-                                        node.ip.as_deref().unwrap_or("N/A"),
-                                        node.device_type.as_deref().unwrap_or("N/A"),
-                                        node.role.as_deref().unwrap_or("N/A"),
-                                        node.family.as_deref().unwrap_or("N/A"),
+                                        "Label", "IP", "Device Type", "Role", "Family"
                                     ]);
+                                    for node in nodes {
+                                        table.add_row(row![
+                                            node.label.as_deref().unwrap_or("N/A"),
+                                            node.ip.as_deref().unwrap_or("N/A"),
+                                            node.device_type.as_deref().unwrap_or("N/A"),
+                                            node.role.as_deref().unwrap_or("N/A"),
+                                            node.family.as_deref().unwrap_or("N/A"),
+                                        ]);
+                                    }
+                                    table.printstd();
                                 }
-                                table.printstd();
                             } else {
                                 println!("No nodes in physical topology.");
                             }
@@ -42,19 +46,23 @@ pub fn handle_topology_command(subcommand: TopologyCommands) {
                     Ok(resp) => {
                         if let Some(inner) = resp.response {
                             if let Some(sites) = inner.sites {
-                                let mut table = Table::new();
-                                table.add_row(row![
-                                    "Name", "ID", "Location Address", "Parent ID"
-                                ]);
-                                for site in sites {
+                                if crate::helpers::output::is_json() {
+                                    crate::helpers::output::print_json(&sites);
+                                } else {
+                                    let mut table = Table::new();
                                     table.add_row(row![
-                                        site.name.as_deref().unwrap_or("N/A"),
-                                        site.id.as_deref().unwrap_or("N/A"),
-                                        site.location_address.as_deref().unwrap_or("N/A"),
-                                        site.parent_id.as_deref().unwrap_or("N/A"),
+                                        "Name", "ID", "Location Address", "Parent ID"
                                     ]);
+                                    for site in sites {
+                                        table.add_row(row![
+                                            site.name.as_deref().unwrap_or("N/A"),
+                                            site.id.as_deref().unwrap_or("N/A"),
+                                            site.location_address.as_deref().unwrap_or("N/A"),
+                                            site.parent_id.as_deref().unwrap_or("N/A"),
+                                        ]);
+                                    }
+                                    table.printstd();
                                 }
-                                table.printstd();
                             } else {
                                 println!("No sites in topology.");
                             }
@@ -70,20 +78,24 @@ pub fn handle_topology_command(subcommand: TopologyCommands) {
                     Ok(resp) => {
                         if let Some(graph) = resp.response {
                             if let Some(nodes) = graph.nodes {
-                                let mut table = Table::new();
-                                table.add_row(row![
-                                    "Label", "IP", "Device Type", "Role", "Family"
-                                ]);
-                                for node in nodes {
+                                if crate::helpers::output::is_json() {
+                                    crate::helpers::output::print_json(&nodes);
+                                } else {
+                                    let mut table = Table::new();
                                     table.add_row(row![
-                                        node.label.as_deref().unwrap_or("N/A"),
-                                        node.ip.as_deref().unwrap_or("N/A"),
-                                        node.device_type.as_deref().unwrap_or("N/A"),
-                                        node.role.as_deref().unwrap_or("N/A"),
-                                        node.family.as_deref().unwrap_or("N/A"),
+                                        "Label", "IP", "Device Type", "Role", "Family"
                                     ]);
+                                    for node in nodes {
+                                        table.add_row(row![
+                                            node.label.as_deref().unwrap_or("N/A"),
+                                            node.ip.as_deref().unwrap_or("N/A"),
+                                            node.device_type.as_deref().unwrap_or("N/A"),
+                                            node.role.as_deref().unwrap_or("N/A"),
+                                            node.family.as_deref().unwrap_or("N/A"),
+                                        ]);
+                                    }
+                                    table.printstd();
                                 }
-                                table.printstd();
                             } else {
                                 println!("No nodes in L3 topology.");
                             }
@@ -98,12 +110,16 @@ pub fn handle_topology_command(subcommand: TopologyCommands) {
                 match topology::get_vlan_names(&ctx.config, &ctx.token).await {
                     Ok(resp) => {
                         if let Some(vlans) = resp.response {
-                            let mut table = Table::new();
-                            table.add_row(row!["VLAN Name"]);
-                            for vlan in vlans {
-                                table.add_row(row![vlan]);
+                            if crate::helpers::output::is_json() {
+                                crate::helpers::output::print_json(&vlans);
+                            } else {
+                                let mut table = Table::new();
+                                table.add_row(row!["VLAN Name"]);
+                                for vlan in vlans {
+                                    table.add_row(row![vlan]);
+                                }
+                                table.printstd();
                             }
-                            table.printstd();
                         } else {
                             println!("No VLAN names returned.");
                         }

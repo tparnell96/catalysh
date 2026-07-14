@@ -4,9 +4,9 @@ use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::{http, utils};
 use anyhow::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NetworkHealthItem {
     pub health_score: Option<serde_json::Value>,
@@ -23,12 +23,12 @@ pub struct NetworkHealthItem {
     pub fairpercentage: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct NetworkHealthResponse {
     pub response: Option<Vec<NetworkHealthItem>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClientHealthItem {
     pub site_code: Option<String>,
@@ -41,7 +41,7 @@ pub struct ClientHealthItem {
     pub connected_to_udncount: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ClientHealthResponse {
     pub response: Option<Vec<ClientHealthItem>>,
 }
