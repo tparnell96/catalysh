@@ -142,7 +142,6 @@ pub fn handle_ap_command(subcommand: ApCommands) {
                                 ]);
                             }
                             overview_table.printstd();
-                            overview_table.printstd();
 
                             for profile in &profiles {
                                 println!("\nProfile: {}", profile.name.as_deref().unwrap_or("N/A"));
