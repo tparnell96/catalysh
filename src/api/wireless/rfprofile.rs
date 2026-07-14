@@ -1,5 +1,6 @@
 use crate::api::authentication::auth;
 use crate::app::config::Config;
+use crate::helpers::http;
 use anyhow::Result;
 use log::debug;
 use serde::{Deserialize, Serialize};
@@ -61,9 +62,7 @@ pub struct RFProfile {
 const RF_PROFILE_ENDPOINT: &str = "/dna/intent/api/v1/wireless/rf-profile";
 
 pub async fn get_all_rf_profiles(config: &Config, token: &auth::Token) -> Result<Vec<RFProfile>> {
-    let client = reqwest::Client::builder()
-        .danger_accept_invalid_certs(!config.verify_ssl)
-        .build()?;
+    let client = http::build_client(config)?;
 
     let url = format!("{}{}", config.dnac_url, RF_PROFILE_ENDPOINT);
     debug!("Requesting RF profiles from URL: {}", url);

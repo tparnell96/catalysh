@@ -2,8 +2,8 @@
 
 use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
+use crate::helpers::http;
 use anyhow::{anyhow, Result};
-use reqwest::Client;
 use serde::Deserialize;
 use std::collections::HashMap;
 
@@ -39,9 +39,7 @@ pub async fn get_issue_list(
     token: &Token,
     search_params: &HashMap<String, String>,
 ) -> Result<IssueListResponse> {
-    let client = Client::builder()
-        .danger_accept_invalid_certs(!config.verify_ssl)
-        .build()?;
+    let client = http::build_client(config)?;
 
     let url = format!("{}/dna/intent/api/v1/issues", config.dnac_url);
 

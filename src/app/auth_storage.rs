@@ -8,6 +8,7 @@ use rand::{rngs::OsRng, RngCore};
 use rusqlite::{params, Connection, OpenFlags};
 use std::fs;
 use std::path::Path;
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use std::process::Command;
 use std::sync::Mutex;
 
@@ -191,6 +192,7 @@ impl AuthStorage {
         Ok(String::from_utf8(decrypted)?)
     }
 
+    #[allow(dead_code)]
     pub fn verify_credentials(&self, id: &str, password: &str) -> Result<bool> {
         let stored_password = self.get_credentials(id)?;
         Ok(stored_password == password)

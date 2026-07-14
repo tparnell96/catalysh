@@ -23,7 +23,7 @@ fn perform_first_time_installation() -> Result<(), Box<dyn std::error::Error>> {
     if !install_dir.exists() {
         println!("Running first-time installation...");
         fs::create_dir_all(&install_dir)?;
-        fs::write(install_dir.join("version"), "1.0.0")?;
+        fs::write(install_dir.join("version"), env!("CARGO_PKG_VERSION"))?;
         println!("First-time installation complete.");
     }
     Ok(())
@@ -47,8 +47,9 @@ fn main() {
     let rl = ClapEditor::<Cli>::builder()
         .with_prompt(Box::new(prompt))
         .with_editor_hook(|reed| {
+            let history_file = get_installation_dir().join("history");
             reed.with_history(Box::new(
-                FileBackedHistory::with_file(10000, "/tmp/catalysh-cli-history".into()).unwrap(),
+                FileBackedHistory::with_file(10000, history_file).unwrap(),
             ))
         })
         .build();

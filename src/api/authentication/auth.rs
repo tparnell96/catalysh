@@ -127,15 +127,6 @@ fn load_token() -> Result<Option<Token>> {
 
 fn create_tables(conn: &Connection) -> Result<()> {
     conn.execute(
-        "CREATE TABLE IF NOT EXISTS credentials (
-            id INTEGER PRIMARY KEY,
-            username TEXT NOT NULL,
-            password_hash TEXT NOT NULL
-        )",
-        [],
-    )?;
-
-    conn.execute(
         "CREATE TABLE IF NOT EXISTS token (
             id INTEGER PRIMARY KEY,
             value TEXT NOT NULL,

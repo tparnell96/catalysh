@@ -2,8 +2,8 @@
 
 use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
+use crate::helpers::http;
 use anyhow::{anyhow, Result};
-use reqwest::Client;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -318,16 +318,13 @@ pub async fn get_client_enrichment(
     entity_value: &str,
     issue_category: Option<&str>,
 ) -> Result<ClientEnrichmentResponse> {
-    let client = Client::builder()
-        .danger_accept_invalid_certs(!config.verify_ssl)
-        .build()?;
+    let client = http::build_client(config)?;
 
     let url = format!(
         "{}/dna/intent/api/v1/client-enrichment-details",
         config.dnac_url
     );
 
-    // Build the request with headers
     let mut req_builder = client
         .get(&url)
         .header("X-Auth-Token", &token.value)

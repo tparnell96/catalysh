@@ -1,7 +1,7 @@
 use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
+use crate::helpers::http;
 use anyhow::{anyhow, Result};
-use reqwest::Client;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -23,9 +23,7 @@ struct SitesResponse {
 }
 
 pub async fn get_all_sites(config: &Config, token: &Token) -> Result<Vec<Site>> {
-    let client = Client::builder()
-        .danger_accept_invalid_certs(!config.verify_ssl)
-        .build()?;
+    let client = http::build_client(config)?;
 
     let sites_url = format!("{}/dna/intent/api/v1/site", config.dnac_url);
 

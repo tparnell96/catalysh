@@ -237,6 +237,7 @@ async fn download_app_icon(app_dir: &PathBuf, progress: &ProgressBar) -> Result<
     
     progress.finish_with_message("Icon download complete");
     Ok(())
+}
 
 #[cfg(windows)]
 async fn create_desktop_shortcut(app_dir: &PathBuf, progress: &ProgressBar) -> Result<()> {

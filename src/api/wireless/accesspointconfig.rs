@@ -2,8 +2,8 @@
 
 use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
+use crate::helpers::http;
 use anyhow::{anyhow, Result};
-use reqwest::Client;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -101,9 +101,7 @@ pub struct InternalKey {
 }
 
 pub async fn get_ap_config(config: &Config, token: &Token, mac_address: &str) -> Result<ApConfig> {
-    let client = Client::builder()
-        .danger_accept_invalid_certs(!config.verify_ssl)
-        .build()?;
+    let client = http::build_client(config)?;
 
     let url = format!(
         "{}/dna/intent/api/v1/wireless/accesspoint-configuration/summary",

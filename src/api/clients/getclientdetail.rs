@@ -2,8 +2,8 @@
 
 use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
+use crate::helpers::http;
 use anyhow::{anyhow, Result};
-use reqwest::Client;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -245,9 +245,7 @@ pub async fn get_client_detail(
     token: &Token,
     mac_address: &str,
 ) -> Result<ClientDetailResponse> {
-    let client = Client::builder()
-        .danger_accept_invalid_certs(!config.verify_ssl)
-        .build()?;
+    let client = http::build_client(config)?;
 
     let url = format!("{}/dna/intent/api/v1/client-detail", config.dnac_url);
 

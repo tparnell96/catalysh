@@ -25,15 +25,15 @@ impl Config {
 }
 
 pub fn get_config_path() -> PathBuf {
-    let mut config_path = config_dir().unwrap();
+    let mut config_path = config_dir().expect("Could not determine config directory");
     config_path.push("catalysh");
-    fs::create_dir_all(&config_path).unwrap();
+    fs::create_dir_all(&config_path).expect("Could not create config directory");
     config_path.push("config.yml");
     config_path
 }
 
 pub fn get_credentials_db_path() -> PathBuf {
-    let mut db_path = config_dir().unwrap();
+    let mut db_path = config_dir().expect("Could not determine config directory");
     db_path.push("catalysh");
     db_path.push("credentials.db");
     db_path
