@@ -62,32 +62,33 @@ pub fn handle_ap_command(subcommand: ApCommands) {
 
                 info!("Resolved '{}' → UUID {} ({})", selector, device_uuid, hostname);
 
-                match interfaces::get_ap_uplink_neighbors(&ctx.config, &ctx.token, &device_uuid).await {
-                    Ok(neighbors) if neighbors.is_empty() => {
-                        println!("No CDP/LLDP neighbors discovered for {} ({})", hostname, mgmt_ip);
+                match interfaces::get_device_neighbors(&ctx.config, &ctx.token, &device_uuid).await {
+                    Ok(neighbors) if !neighbors.is_empty() => {
+                        print_neighbor_table(&hostname.to_string(), mgmt_ip, &neighbors);
                     }
-                    Ok(neighbors) => {
-                        if output::is_json() {
-                            output::print_json(&neighbors);
-                        } else {
-                            println!("\nAP Uplink Neighbors: {} ({})", hostname, mgmt_ip);
-                            let mut t = Table::new();
-                            t.add_row(row![ FbFy =>
-                                "AP Port", "Status", "Connected Switch", "Switch Port", "Capabilities"
-                            ]);
-                            for n in &neighbors {
-                                t.add_row(row![
-                                    n.ap_port,
-                                    n.ap_port_status,
-                                    n.neighbor_device,
-                                    n.neighbor_port,
-                                    n.capabilities.join(", "),
-                                ]);
+                    // Interface API returned 404 or empty (expected for APs) — fall back
+                    // to the physical topology graph which always covers APs.
+                    _ => {
+                        match interfaces::get_neighbors_from_topology(
+                            &ctx.config,
+                            &ctx.token,
+                            hostname,
+                            mgmt_ip,
+                        )
+                        .await
+                        {
+                            Ok(neighbors) if neighbors.is_empty() => {
+                                println!(
+                                    "No neighbors found for {} ({}) in physical topology.",
+                                    hostname, mgmt_ip
+                                );
                             }
-                            t.printstd();
+                            Ok(neighbors) => {
+                                print_neighbor_table(&hostname.to_string(), mgmt_ip, &neighbors);
+                            }
+                            Err(e) => error!("Failed to retrieve topology neighbors: {}", e),
                         }
                     }
-                    Err(e) => error!("Failed to retrieve AP neighbors: {}", e),
                 }
             }
             ApCommands::RfProfile => {
@@ -230,4 +231,28 @@ pub fn handle_ap_command(subcommand: ApCommands) {
         }
         Ok(())
     });
+}
+
+fn print_neighbor_table(
+    device: &str,
+    mgmt_ip: &str,
+    neighbors: &[crate::api::devices::interfaces::DeviceNeighbor],
+) {
+    if output::is_json() {
+        output::print_json(&neighbors.to_vec());
+        return;
+    }
+    println!("\nNeighbors: {} ({})", device, mgmt_ip);
+    let mut t = Table::new();
+    t.add_row(row![FbFy => "Local Port", "Status", "Connected Device", "Neighbor Port", "Capabilities"]);
+    for n in neighbors {
+        t.add_row(row![
+            n.local_port,
+            n.port_status,
+            n.neighbor_device,
+            n.neighbor_port,
+            n.capabilities.join(", "),
+        ]);
+    }
+    t.printstd();
 }

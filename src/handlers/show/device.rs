@@ -1,10 +1,10 @@
 // src/handlers/show/device.rs
 
-use crate::api::devices::{compliance, devicecount, devicedetailenrichment, devicehealth, getdevicelist};
+use crate::api::devices::{compliance, devicecount, devicedetailenrichment, devicehealth, getdevicelist, interfaces};
 use crate::commands::show::device::{
     DeviceCommands, DeviceDetailFilter, DeviceEnrichmentFilter, DeviceListFilter,
 };
-use crate::helpers::{command_utils, resolver, utils};
+use crate::helpers::{command_utils, output, resolver, utils};
 use chrono::DateTime;
 use log::error;
 use prettytable::{row, Table};
@@ -175,6 +175,47 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                             Err(e) => error!("Failed to retrieve device enrichment details: {}", e),
                         }
                     }
+                }
+            }
+            DeviceCommands::Neighbors { selector } => {
+                let device = match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
+                    Ok(d) => d,
+                    Err(e) => { error!("Could not resolve device '{}': {}", selector, e); return Ok(()); }
+                };
+                let device_uuid = match device.id.as_deref() {
+                    Some(id) => id.to_string(),
+                    None => { error!("Device '{}' has no UUID", selector); return Ok(()); }
+                };
+                let hostname = device.hostname.clone().unwrap_or_else(|| selector.clone());
+                let mgmt_ip = device.management_ip_address.clone().unwrap_or_else(|| "N/A".to_string());
+
+                // Try the interface/CDP API first; fall back to physical topology for
+                // devices that don't expose interfaces this way (e.g. APs).
+                let neighbors = match interfaces::get_device_neighbors(&ctx.config, &ctx.token, &device_uuid).await {
+                    Ok(n) if !n.is_empty() => n,
+                    _ => {
+                        match interfaces::get_neighbors_from_topology(&ctx.config, &ctx.token, &hostname, &mgmt_ip).await {
+                            Ok(n) => n,
+                            Err(e) => { error!("Failed to retrieve neighbors: {}", e); return Ok(()); }
+                        }
+                    }
+                };
+
+                if neighbors.is_empty() {
+                    println!("No neighbors found for {} ({})", hostname, mgmt_ip);
+                } else if output::is_json() {
+                    output::print_json(&neighbors);
+                } else {
+                    println!("\nNeighbors: {} ({})", hostname, mgmt_ip);
+                    let mut t = Table::new();
+                    t.add_row(row![FbFy => "Local Port", "Status", "Connected Device", "Neighbor Port", "Capabilities"]);
+                    for n in &neighbors {
+                        t.add_row(row![
+                            n.local_port, n.port_status, n.neighbor_device,
+                            n.neighbor_port, n.capabilities.join(", ")
+                        ]);
+                    }
+                    t.printstd();
                 }
             }
             DeviceCommands::Count => {

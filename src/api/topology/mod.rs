@@ -83,11 +83,22 @@ pub async fn get_physical_topology(
     config: &Config,
     token: &Token,
 ) -> Result<PhysicalTopologyResponse> {
+    get_physical_topology_filtered(config, token, None).await
+}
+
+pub async fn get_physical_topology_filtered(
+    config: &Config,
+    token: &Token,
+    node_type: Option<&str>,
+) -> Result<PhysicalTopologyResponse> {
     let client = http::build_client(config)?;
-    let url = format!(
+    let mut url = format!(
         "{}/dna/intent/api/v1/topology/physical-topology",
         config.dnac_url
     );
+    if let Some(nt) = node_type {
+        url = format!("{}?nodeType={}", url, nt);
+    }
     http::get_authenticated(&client, config, token, &url).await
 }
 

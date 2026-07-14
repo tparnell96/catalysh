@@ -19,6 +19,11 @@ pub enum DeviceCommands {
         #[command(subcommand)]
         filter: DeviceEnrichmentFilter,
     },
+    /// Show CDP/LLDP neighbors for any device
+    Neighbors {
+        /// Hostname, management IP address, or MAC address
+        selector: String,
+    },
     /// Show total device count
     Count,
     /// Show device health scores
