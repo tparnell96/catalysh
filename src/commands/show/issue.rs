@@ -8,7 +8,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 pub enum IssueCommands {
     /// List issues based on search criteria
     List {
-        /// Search option (e.g., deviceId, macAddress, priority, etc.)
+        /// Search option (e.g., device, deviceId, macAddress, priority, etc.)
         #[arg(value_enum)]
         search_option: Option<SearchOption>,
         /// Search input corresponding to the search option
@@ -25,6 +25,8 @@ pub enum SearchOption {
     EndTime,
     /// SiteID gotten from a show site detail command
     SiteId,
+    /// Resolve hostname, IP, MAC, or serial to a device ID
+    Device,
     /// DeviceID gotten from a show device detail command
     DeviceId,
     /// MAC Address of a device or client

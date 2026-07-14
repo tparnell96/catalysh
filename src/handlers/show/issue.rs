@@ -2,7 +2,7 @@
 
 use crate::api::issues::getissuelist;
 use crate::commands::show::issue::{IssueCommands, SearchOption};
-use crate::helpers::{command_utils, utils};
+use crate::helpers::{command_utils, resolver, utils};
 use log::error;
 use std::collections::HashMap;
 
@@ -13,7 +13,6 @@ pub fn handle_issue_command(subcommand: IssueCommands) {
                 search_option,
                 search_input,
             } => {
-                // Prepare search parameters
                 let mut search_params = HashMap::new();
 
                 if let Some(option) = search_option {
@@ -27,6 +26,19 @@ pub fn handle_issue_command(subcommand: IssueCommands) {
                             }
                             SearchOption::SiteId => {
                                 search_params.insert("siteId".to_string(), input);
+                            }
+                            SearchOption::Device => {
+                                match resolver::resolve_device_id(&ctx.config, &ctx.token, &input)
+                                    .await
+                                {
+                                    Ok(device_id) => {
+                                        search_params.insert("deviceId".to_string(), device_id);
+                                    }
+                                    Err(e) => {
+                                        error!("Could not resolve device selector '{}': {}", input, e);
+                                        return Ok(());
+                                    }
+                                }
                             }
                             SearchOption::DeviceId => {
                                 search_params.insert("deviceId".to_string(), input);
@@ -50,7 +62,6 @@ pub fn handle_issue_command(subcommand: IssueCommands) {
                     }
                 }
 
-                // Fetch issue list
                 match getissuelist::get_issue_list(&ctx.config, &ctx.token, &search_params).await {
                     Ok(issue_list_response) => {
                         utils::print_issue_list(issue_list_response);

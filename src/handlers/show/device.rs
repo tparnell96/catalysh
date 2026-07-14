@@ -15,60 +15,52 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
     command_utils::execute_with_context(|ctx| async move {
         match subcommand {
             DeviceCommands::List { filter } => {
-                // Fetch all devices
                 match getdevicelist::get_all_devices(&ctx.config, &ctx.token).await {
                     Ok(devices) => {
-                        // Apply filter if necessary
                         let filtered_devices = match filter {
                             DeviceListFilter::All => devices,
-                            DeviceListFilter::Hostname { partial_hostname } => {
-                                devices
-                                    .into_iter()
-                                    .filter(|device| {
-                                        if let Some(ref name) = device.hostname {
-                                            if let Some(ref partial) = partial_hostname {
-                                                name.contains(partial)
-                                            } else {
-                                                true // Include all devices with a hostname
-                                            }
+                            DeviceListFilter::Hostname { partial_hostname } => devices
+                                .into_iter()
+                                .filter(|device| {
+                                    if let Some(ref name) = device.hostname {
+                                        if let Some(ref partial) = partial_hostname {
+                                            name.contains(partial)
                                         } else {
-                                            false
+                                            true
                                         }
-                                    })
-                                    .collect()
-                            }
-                            DeviceListFilter::Ip { partial_ip } => {
-                                devices
-                                    .into_iter()
-                                    .filter(|device| {
-                                        if let Some(ref ip) = device.management_ip_address {
-                                            if let Some(ref partial) = partial_ip {
-                                                ip.contains(partial)
-                                            } else {
-                                                true // Include all devices with an IP address
-                                            }
+                                    } else {
+                                        false
+                                    }
+                                })
+                                .collect(),
+                            DeviceListFilter::Ip { partial_ip } => devices
+                                .into_iter()
+                                .filter(|device| {
+                                    if let Some(ref ip) = device.management_ip_address {
+                                        if let Some(ref partial) = partial_ip {
+                                            ip.contains(partial)
                                         } else {
-                                            false
+                                            true
                                         }
-                                    })
-                                    .collect()
-                            }
-                            DeviceListFilter::Wlc { partial_wlc } => {
-                                devices
-                                    .into_iter()
-                                    .filter(|device| {
-                                        if let Some(ref wlc_ip) = device.associated_wlc_ip {
-                                            if let Some(ref partial) = partial_wlc {
-                                                wlc_ip.contains(partial)
-                                            } else {
-                                                true // Include all devices with a WLC IP
-                                            }
+                                    } else {
+                                        false
+                                    }
+                                })
+                                .collect(),
+                            DeviceListFilter::Wlc { partial_wlc } => devices
+                                .into_iter()
+                                .filter(|device| {
+                                    if let Some(ref wlc_ip) = device.associated_wlc_ip {
+                                        if let Some(ref partial) = partial_wlc {
+                                            wlc_ip.contains(partial)
                                         } else {
-                                            false
+                                            true
                                         }
-                                    })
-                                    .collect()
-                            }
+                                    } else {
+                                        false
+                                    }
+                                })
+                                .collect(),
                         };
 
                         utils::print_devices(filtered_devices);
@@ -76,120 +68,47 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                     Err(e) => error!("Failed to retrieve devices: {}", e),
                 }
             }
-            DeviceCommands::Detail { filter } => {
-                // Handle the `by` variant via the resolver; legacy variants do their own lookup
-                if let DeviceDetailFilter::By { ref selector } = filter {
-                    match resolver::resolve_device(&ctx.config, &ctx.token, selector).await {
-                        Ok(device) => utils::print_device_detail(device),
-                        Err(e) => error!("Could not resolve device '{}': {}", selector, e),
-                    }
-                } else {
-                    match getdevicelist::get_all_devices(&ctx.config, &ctx.token).await {
-                        Ok(devices) => {
-                            let device_option = match filter {
-                                DeviceDetailFilter::By { .. } => unreachable!(),
-                                DeviceDetailFilter::Hostname { ref hostname } => devices
-                                    .into_iter()
-                                    .find(|d| d.hostname.as_deref() == Some(hostname)),
-                                DeviceDetailFilter::Mac { ref mac_address } => devices
-                                    .into_iter()
-                                    .find(|d| d.mac_address.as_deref() == Some(mac_address)),
-                                DeviceDetailFilter::Ip { ref ip_address } => {
-                                    devices.into_iter().find(|d| {
-                                        d.management_ip_address.as_deref() == Some(ip_address)
-                                    })
-                                }
-                            };
-
-                            match device_option {
-                                Some(device) => utils::print_device_detail(device),
-                                None => {
-                                    println!("No device found matching the specified criteria.")
-                                }
-                            }
-                        }
-                        Err(e) => error!("Failed to retrieve devices: {}", e),
-                    }
-                }
-            }
-            DeviceCommands::Enrichment { filter } => {
-                // Handle the `by` variant via the resolver; legacy variants pass through directly
-                match filter {
-                    DeviceEnrichmentFilter::By { selector } => {
-                        // Resolve the device to determine the best entity type
-                        match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
-                            Ok(device) => {
-                                // Prefer IP for enrichment (more reliable than MAC)
-                                let (entity_type, entity_value) =
-                                    if let Some(ref ip) = device.management_ip_address {
-                                        ("ip_address", ip.clone())
-                                    } else if let Some(ref mac) = device.mac_address {
-                                        ("mac_address", mac.clone())
-                                    } else {
-                                        error!(
-                                            "Resolved device has neither IP nor MAC — cannot enrich"
-                                        );
-                                        return Ok(());
-                                    };
-                                match devicedetailenrichment::get_device_enrichment(
-                                    &ctx.config,
-                                    &ctx.token,
-                                    entity_type,
-                                    &entity_value,
-                                )
-                                .await
-                                {
-                                    Ok(details) => utils::print_device_enrichment(details),
-                                    Err(e) => error!(
-                                        "Failed to retrieve device enrichment details: {}",
-                                        e
-                                    ),
-                                }
-                            }
-                            Err(e) => error!("Could not resolve device '{}': {}", selector, e),
-                        }
-                    }
-                    DeviceEnrichmentFilter::Mac { mac_address } => {
-                        match devicedetailenrichment::get_device_enrichment(
-                            &ctx.config,
-                            &ctx.token,
-                            "mac_address",
-                            &mac_address,
-                        )
-                        .await
-                        {
-                            Ok(device_details) => {
-                                utils::print_device_enrichment(device_details);
-                            }
-                            Err(e) => error!("Failed to retrieve device enrichment details: {}", e),
-                        }
-                    }
-                    DeviceEnrichmentFilter::Ip { ip_address } => {
-                        match devicedetailenrichment::get_device_enrichment(
-                            &ctx.config,
-                            &ctx.token,
-                            "ip_address",
-                            &ip_address,
-                        )
-                        .await
-                        {
-                            Ok(device_details) => {
-                                utils::print_device_enrichment(device_details);
-                            }
-                            Err(e) => error!("Failed to retrieve device enrichment details: {}", e),
-                        }
-                    }
-                }
-            }
-            DeviceCommands::Neighbors { selector } => {
-                let device =
-                    match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
-                        Ok(d) => d,
-                        Err(e) => {
-                            error!("Could not resolve device '{}': {}", selector, e);
-                            return Ok(());
-                        }
+            DeviceCommands::Detail {
+                filter: DeviceDetailFilter::By { selector },
+            } => match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
+                Ok(device) => utils::print_device_detail(device),
+                Err(e) => error!("Could not resolve device '{}': {}", selector, e),
+            },
+            DeviceCommands::Enrichment {
+                filter: DeviceEnrichmentFilter::By { selector },
+            } => match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
+                Ok(device) => {
+                    let (entity_type, entity_value) = if let Some(ref ip) = device.management_ip_address
+                    {
+                        ("ip_address", ip.clone())
+                    } else if let Some(ref mac) = device.mac_address {
+                        ("mac_address", mac.clone())
+                    } else {
+                        error!("Resolved device has neither IP nor MAC — cannot enrich");
+                        return Ok(());
                     };
+                    match devicedetailenrichment::get_device_enrichment(
+                        &ctx.config,
+                        &ctx.token,
+                        entity_type,
+                        &entity_value,
+                    )
+                    .await
+                    {
+                        Ok(details) => utils::print_device_enrichment(details),
+                        Err(e) => error!("Failed to retrieve device enrichment details: {}", e),
+                    }
+                }
+                Err(e) => error!("Could not resolve device '{}': {}", selector, e),
+            },
+            DeviceCommands::Neighbors { selector } => {
+                let device = match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
+                    Ok(d) => d,
+                    Err(e) => {
+                        error!("Could not resolve device '{}': {}", selector, e);
+                        return Ok(());
+                    }
+                };
                 let device_uuid = match device.id.as_deref() {
                     Some(id) => id.to_string(),
                     None => {
@@ -203,37 +122,37 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                     .clone()
                     .unwrap_or_else(|| "N/A".to_string());
 
-                // Try the interface/CDP API first; fall back to physical topology for
-                // devices that don't expose interfaces this way (e.g. APs).
-                let neighbors =
-                    match interfaces::get_device_neighbors(&ctx.config, &ctx.token, &device_uuid)
-                        .await
+                let neighbors = match interfaces::get_device_neighbors(
+                    &ctx.config,
+                    &ctx.token,
+                    &device_uuid,
+                )
+                .await
+                {
+                    Ok(n) if !n.is_empty() => n,
+                    _ => match interfaces::get_neighbors_from_topology(
+                        &ctx.config,
+                        &ctx.token,
+                        &hostname,
+                        &mgmt_ip,
+                    )
+                    .await
                     {
-                        Ok(n) if !n.is_empty() => n,
-                        _ => {
-                            match interfaces::get_neighbors_from_topology(
-                                &ctx.config,
-                                &ctx.token,
-                                &hostname,
-                                &mgmt_ip,
-                            )
-                            .await
-                            {
-                                Ok(n) => n,
-                                Err(e) => {
-                                    error!("Failed to retrieve neighbors: {}", e);
-                                    return Ok(());
-                                }
-                            }
+                        Ok(n) => n,
+                        Err(e) => {
+                            error!("Failed to retrieve neighbors: {}", e);
+                            return Ok(());
                         }
-                    };
+                    },
+                };
 
                 if neighbors.is_empty() {
                     println!("No neighbors found for {} ({})", hostname, mgmt_ip);
                 } else if output::is_json() {
                     output::print_json(&neighbors);
                 } else {
-                    println!("\nNeighbors: {} ({})", hostname, mgmt_ip);
+                    println!("
+Neighbors: {} ({})", hostname, mgmt_ip);
                     let mut t = Table::new();
                     t.add_row(row![FbFy => "Local Port", "Status", "Connected Device", "Neighbor Port", "Capabilities"]);
                     for n in &neighbors {

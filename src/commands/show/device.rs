@@ -68,21 +68,6 @@ pub enum DeviceDetailFilter {
         /// Hostname, management IP address, or MAC address
         selector: String,
     },
-    /// Show device detail by hostname
-    Hostname {
-        /// The hostname of the device
-        hostname: String,
-    },
-    /// Show device detail by MAC address
-    Mac {
-        /// The MAC address of the device
-        mac_address: String,
-    },
-    /// Show device detail by IP address
-    Ip {
-        /// The IP address of the device
-        ip_address: String,
-    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -91,15 +76,5 @@ pub enum DeviceEnrichmentFilter {
     By {
         /// Hostname, management IP address, or MAC address
         selector: String,
-    },
-    /// Enrichment by MAC address
-    Mac {
-        /// The MAC address of the device
-        mac_address: String,
-    },
-    /// Enrichment by IP address
-    Ip {
-        /// The IP address of the device
-        ip_address: String,
     },
 }

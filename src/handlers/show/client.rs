@@ -2,15 +2,25 @@
 
 use crate::api::clients::{clientlist, clientproximity, getclientdetail, getclientenrichment};
 use crate::commands::show::client::ClientCommands;
-use crate::helpers::{command_utils, utils};
+use crate::helpers::{command_utils, resolver, utils};
 use log::error;
 
 pub fn handle_client_command(subcommand: ClientCommands) {
     command_utils::execute_with_context(|ctx| async move {
         match subcommand {
-            ClientCommands::Detail { mac_address } => {
-                match getclientdetail::get_client_detail(&ctx.config, &ctx.token, &mac_address)
-                    .await
+            ClientCommands::Detail { selector } => {
+                let mac_address = match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
+                    Ok(device) => device.mac_address.unwrap_or(selector.clone()),
+                    Err(_) => selector.clone(),
+                };
+
+                match getclientdetail::get_client_detail(
+                    &ctx.config,
+                    &ctx.token,
+                    &mac_address,
+                    None,
+                )
+                .await
                 {
                     Ok(client_detail_response) => {
                         utils::print_client_detail(client_detail_response);

@@ -4,10 +4,10 @@ use clap::Subcommand;
 
 #[derive(Debug, Subcommand)]
 pub enum ClientCommands {
-    /// Show client details by MAC address
+    /// Show client details by MAC address, IP address, or username
     Detail {
-        /// MAC address of the client
-        mac_address: String,
+        /// MAC address, IP address, or username
+        selector: String,
     },
     /// Show client enrichment by network user ID or MAC address
     Enrichment {
