@@ -31,6 +31,8 @@ pub struct TopologyNode {
 pub struct TopologyLink {
     pub source: Option<String>,
     pub target: Option<String>,
+    pub start_port_name: Option<String>,
+    pub end_port_name: Option<String>,
     pub link_status: Option<String>,
     pub label: Option<serde_json::Value>,
     pub id: Option<String>,

@@ -4,7 +4,7 @@ use crate::api::devices::interfaces;
 use crate::api::wireless::{accesspointconfig, rfprofile};
 use crate::commands::show::ap::ApCommands;
 use crate::helpers::{command_utils, output, resolver, utils};
-use log::{error, info};
+use log::{error, info, warn};
 use prettytable::{Table, row, table};
 
 pub fn handle_ap_command(subcommand: ApCommands) {
@@ -62,32 +62,54 @@ pub fn handle_ap_command(subcommand: ApCommands) {
                     selector, device_uuid, hostname
                 );
 
-                match interfaces::get_device_neighbors(&ctx.config, &ctx.token, &device_uuid).await
+                match interfaces::get_ap_neighbors_from_topology(
+                    &ctx.config,
+                    &ctx.token,
+                    hostname,
+                    mgmt_ip,
+                )
+                .await
                 {
                     Ok(neighbors) if !neighbors.is_empty() => {
                         print_neighbor_table(hostname, mgmt_ip, &neighbors);
                     }
-                    // Interface API returned 404 or empty (expected for APs) — fall back
-                    // to the physical topology graph which always covers APs.
-                    _ => {
-                        match interfaces::get_neighbors_from_topology(
+                    Ok(_) => {
+                        match interfaces::get_device_neighbors(
                             &ctx.config,
                             &ctx.token,
-                            hostname,
-                            mgmt_ip,
+                            &device_uuid,
                         )
                         .await
                         {
-                            Ok(neighbors) if neighbors.is_empty() => {
-                                println!(
-                                    "No neighbors found for {} ({}) in physical topology.",
-                                    hostname, mgmt_ip
-                                );
-                            }
-                            Ok(neighbors) => {
-                                print_neighbor_table(hostname, mgmt_ip, &neighbors);
-                            }
-                            Err(e) => error!("Failed to retrieve topology neighbors: {}", e),
+                            Ok(neighbors) if neighbors.is_empty() => println!(
+                                "No neighbors found for {} ({}) in physical topology or interface data.",
+                                hostname, mgmt_ip
+                            ),
+                            Ok(neighbors) => print_neighbor_table(hostname, mgmt_ip, &neighbors),
+                            Err(e) => error!("Failed to retrieve AP neighbors: {}", e),
+                        }
+                    }
+                    Err(topology_error) => {
+                        warn!(
+                            "Physical topology lookup failed for '{}': {}",
+                            hostname, topology_error
+                        );
+                        match interfaces::get_device_neighbors(
+                            &ctx.config,
+                            &ctx.token,
+                            &device_uuid,
+                        )
+                        .await
+                        {
+                            Ok(neighbors) if neighbors.is_empty() => error!(
+                                "No AP neighbors found; physical topology failed: {}",
+                                topology_error
+                            ),
+                            Ok(neighbors) => print_neighbor_table(hostname, mgmt_ip, &neighbors),
+                            Err(interface_error) => error!(
+                                "Failed to retrieve AP neighbors from topology ({}) and interface data ({})",
+                                topology_error, interface_error
+                            ),
                         }
                     }
                 }
@@ -244,16 +266,39 @@ fn print_neighbor_table(
     }
     println!("\nNeighbors: {} ({})", device, mgmt_ip);
     let mut t = Table::new();
-    t.add_row(
-        row![FbFy => "Local Port", "Status", "Connected Device", "Neighbor Port", "Capabilities"],
-    );
+    t.add_row(row![FbFy =>
+        "AP Port",
+        "Link",
+        "Connected Device",
+        "Switch IP",
+        "Platform",
+        "Switch Port",
+        "Port Status",
+        "VLAN",
+        "Speed",
+        "Description"
+    ]);
     for n in neighbors {
+        let interface = n.neighbor_interface.as_ref();
         t.add_row(row![
             n.local_port,
             n.port_status,
             n.neighbor_device,
+            n.neighbor_ip.as_deref().unwrap_or("N/A"),
+            n.neighbor_platform_id.as_deref().unwrap_or("N/A"),
             n.neighbor_port,
-            n.capabilities.join(", "),
+            interface
+                .and_then(|details| details.status.as_deref())
+                .unwrap_or("N/A"),
+            interface
+                .and_then(|details| details.vlan_id.as_deref())
+                .unwrap_or("N/A"),
+            interface
+                .and_then(|details| details.speed.as_deref())
+                .unwrap_or("N/A"),
+            interface
+                .and_then(|details| details.description.as_deref())
+                .unwrap_or("N/A"),
         ]);
     }
     t.printstd();
