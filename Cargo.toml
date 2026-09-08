@@ -10,7 +10,7 @@ readme = "README.md"
 documentation = "https://github.com/hexabyte8/catalysh"
 keywords = ["networking", "cisco", "dnac", "catalyst", "cli"]
 categories = ["command-line-utilities"]
-exclude = ["/target", "/Cargo.lock", "/.github"]
+exclude = ["/target", "/Cargo.lock", "/.github", "/result"]
 
 [dependencies]
 aes-gcm = "0.10.3"
