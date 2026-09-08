@@ -214,10 +214,9 @@ branch are cancelled.
 Tags created from feature branches or detached commits are rejected. Pre-releases use a
 SemVer suffix such as `v1.2.3-rc.1` and are marked as pre-releases on GitHub.
 
-Crate publishing uses crates.io Trusted Publishing and a short-lived GitHub OIDC token;
-do not add a long-lived registry token to repository secrets. Configure the `catalysh`
-crate's trusted publisher for repository `hexabyte8/catalysh` and workflow
-`release.yml`, with no GitHub environment restriction.
+Crate publishing uses the `CARGO_REGISTRY_TOKEN` GitHub Actions repository secret. Keep
+the token scoped to publishing this crate and rotate it according to the project's
+credential policy.
 
 Published crates.io versions are immutable. If a version is published accidentally, yank
 it with `cargo yank --vers <version> catalysh`; existing lockfiles can still use it, but
