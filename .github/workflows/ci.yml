@@ -101,6 +101,4 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y pkg-config libssl-dev
 
       - name: Build
-        env:
-          TARGET: ${{ matrix.target }}
-        run: cargo build --release --target "$TARGET"
+        run: cargo build --release --target "${{ matrix.target }}"
