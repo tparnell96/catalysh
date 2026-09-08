@@ -3,7 +3,7 @@ use crate::api::networksettings;
 use crate::commands::show::networksettings::NetworkSettingsCommands;
 use crate::helpers::command_utils;
 use log::error;
-use prettytable::{row, Table};
+use prettytable::{Table, row};
 
 pub fn handle_networksettings_command(subcommand: NetworkSettingsCommands) {
     command_utils::execute_with_context(|ctx| async move {

@@ -9,10 +9,11 @@ pub fn handle_client_command(subcommand: ClientCommands) {
     command_utils::execute_with_context(|ctx| async move {
         match subcommand {
             ClientCommands::Detail { selector } => {
-                let mac_address = match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
-                    Ok(device) => device.mac_address.unwrap_or(selector.clone()),
-                    Err(_) => selector.clone(),
-                };
+                let mac_address =
+                    match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
+                        Ok(device) => device.mac_address.unwrap_or(selector.clone()),
+                        Err(_) => selector.clone(),
+                    };
 
                 match getclientdetail::get_client_detail(
                     &ctx.config,

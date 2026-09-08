@@ -7,124 +7,24 @@ Thank you for your interest in contributing! This document covers the project ar
 ## Project structure
 
 ```
-catalysh/
-├── Cargo.toml
-├── flake.nix                  # Nix flake for reproducible builds and dev shell
-├── README.md
-├── docs/
-│   └── ADDING_COMMANDS.md     # Developer reference: adding new show commands
-└── src/
-    ├── main.rs                # Entry point: one-liner vs. REPL dispatch, history setup
-    ├── api/                   # Serde structs + async HTTP fetch functions
-    │   ├── mod.rs
-    │   ├── advisory/mod.rs
-    │   ├── authentication/
-    │   │   ├── mod.rs
-    │   │   └── auth.rs        # Token struct, authenticate()
-    │   ├── clients/
-    │   │   ├── mod.rs
-    │   │   ├── clientlist.rs
-    │   │   ├── clientproximity.rs
-    │   │   ├── getclientdetail.rs
-    │   │   └── getclientenrichment.rs
-    │   ├── commandrunner/mod.rs
-    │   ├── devices/
-    │   │   ├── mod.rs
-    │   │   ├── compliance.rs
-    │   │   ├── devicecount.rs
-    │   │   ├── devicedetailenrichment.rs
-    │   │   ├── devicehealth.rs
-    │   │   └── getdevicelist.rs
-    │   ├── discovery/mod.rs
-    │   ├── eox/mod.rs
-    │   ├── health/mod.rs
-    │   ├── issues/
-    │   │   ├── mod.rs
-    │   │   └── getissuelist.rs
-    │   ├── networksettings/mod.rs
-    │   ├── pathanalysis/mod.rs
-    │   ├── platform/mod.rs
-    │   ├── sites/
-    │   │   ├── mod.rs
-    │   │   ├── getsitelist.rs
-    │   │   └── sitehealth.rs
-    │   ├── tags/mod.rs
-    │   ├── task/mod.rs
-    │   ├── topology/mod.rs
-    │   └── wireless/
-    │       ├── mod.rs
-    │       ├── accesspointconfig.rs
-    │       ├── rfprofile.rs
-    │       └── ssids.rs
-    ├── app/                   # Application-level concerns
-    │   ├── mod.rs
-    │   ├── auth_storage.rs    # AES-GCM credential encryption/SQLite storage
-    │   ├── config.rs          # Config struct, load/save/setup wizard, cert helpers
-    │   ├── update.rs          # Binary self-update logic
-    │   └── windows_setup.rs
-    ├── commands/              # Clap subcommand definitions (no logic)
-    │   ├── mod.rs             # Top-level Commands enum, route_command()
-    │   ├── run.rs             # RunCommands, CommandRunnerCommands
-    │   ├── app/
-    │   │   ├── mod.rs         # AppCommands
-    │   │   ├── config.rs      # AppConfigCommands
-    │   │   └── update.rs
-    │   ├── config/
-    │   │   ├── mod.rs
-    │   │   └── commands.rs
-    │   └── show/
-    │       ├── mod.rs         # ShowCommands enum
-    │       ├── advisory.rs
-    │       ├── ap.rs
-    │       ├── client.rs
-    │       ├── device.rs
-    │       ├── discovery.rs
-    │       ├── eox.rs
-    │       ├── health.rs
-    │       ├── issue.rs
-    │       ├── networksettings.rs
-    │       ├── path.rs
-    │       ├── platform.rs
-    │       ├── site.rs
-    │       ├── tag.rs
-    │       ├── task.rs
-    │       ├── topology.rs
-    │       └── wireless.rs
-    ├── handlers/              # Business logic dispatched by route_command()
-    │   ├── mod.rs
-    │   ├── run.rs
-    │   ├── app/
-    │   │   ├── mod.rs
-    │   │   ├── config.rs
-    │   │   └── update.rs
-    │   ├── config/
-    │   │   ├── mod.rs
-    │   │   └── repl.rs
-    │   └── show/
-    │       ├── mod.rs
-    │       ├── advisory.rs
-    │       ├── ap.rs
-    │       ├── client.rs
-    │       ├── device.rs
-    │       ├── discovery.rs
-    │       ├── eox.rs
-    │       ├── health.rs
-    │       ├── issue.rs
-    │       ├── networksettings.rs
-    │       ├── path.rs
-    │       ├── platform.rs
-    │       ├── site.rs
-    │       ├── tag.rs
-    │       ├── task.rs
-    │       ├── topology.rs
-    │       └── wireless.rs
-    └── helpers/               # Cross-cutting utilities
-        ├── mod.rs
-        ├── command_utils.rs   # execute_with_context(), CommandContext
-        ├── http.rs            # build_client() with custom cert loading
-        ├── output.rs          # OutputFormat enum, is_json(), print_json()
-        └── utils.rs           # print_* table/JSON functions for each data type
+.
+├── src/
+│   ├── api/        # Catalyst Center API types and HTTP operations
+│   ├── app/        # Configuration, credentials, updates, and platform setup
+│   ├── commands/   # Clap command definitions and routing
+│   ├── handlers/   # Command orchestration and presentation logic
+│   ├── helpers/    # Shared HTTP, output, and device-resolution utilities
+│   ├── tui/        # Interactive terminal interfaces
+│   └── main.rs     # One-shot CLI and REPL entry point
+├── docs/           # Focused developer guides
+└── .github/workflows/
+    ├── ci.yml      # Pull-request and main-branch quality gates
+    └── release.yml # Tag-gated binary and crates.io releases
 ```
+
+Modules below `api`, `commands`, and `handlers` are grouped by product domain. Prefer
+following an existing neighboring domain over documenting every file here; this overview
+should remain stable as commands are added.
 
 ---
 
@@ -169,7 +69,8 @@ cargo watch -x check                # watch mode (requires cargo-watch)
 
 ## Architecture overview
 
-catalysh is built in four layers. Every API-backed `show` command touches all four in the same pattern:
+catalysh supports one-shot commands, a persistent REPL, and interactive TUI views. API-backed
+commands generally flow through four layers:
 
 ### Layer 1 — API (`src/api/<category>/`)
 
@@ -287,7 +188,7 @@ pub fn print_my_data(items: Vec<MyStruct>) {
 
 ## CI/CD
 
-### What runs on every PR
+### What runs in CI
 
 | Check | Command |
 |---|---|
@@ -296,14 +197,32 @@ pub fn print_my_data(items: Vec<MyStruct>) {
 | Tests | `cargo test --all-features --verbose` |
 | Build matrix | `cargo build` for linux-gnu, linux-musl, linux-aarch64, macos-x86_64, macos-aarch64, windows-x86_64 |
 
-All checks must pass before a PR can be merged.
+The same checks run for pull requests and pushes to `main`. Superseded runs on the same
+branch are cancelled.
 
 ### Release process
 
-1. Bump `version` in `Cargo.toml`.
-2. Create and push a tag matching the version: `git tag v0.x.y && git push origin v0.x.y`.
-3. The release workflow validates that the tag matches `Cargo.toml`, then builds release binaries for all six targets, generates SHA-256 checksums, and publishes a GitHub Release with all assets attached.
-4. After the GitHub Release is published, publish to crates.io: `cargo publish`.
+1. Merge the release-ready version bump in `Cargo.toml` to `main` and wait for CI to pass.
+2. Tag that commit with a SemVer tag matching the package version, then push it:
+   `git tag v1.2.3 && git push origin v1.2.3`.
+3. The release workflow verifies that the tag is valid SemVer, matches `Cargo.toml`, and
+   points to a commit contained in `main`. It reruns formatting, linting, and tests before
+   building binaries for all supported targets.
+4. After all builds succeed, the workflow publishes the GitHub Release and then the crate
+   to crates.io.
+
+Tags created from feature branches or detached commits are rejected. Pre-releases use a
+SemVer suffix such as `v1.2.3-rc.1` and are marked as pre-releases on GitHub.
+
+Crate publishing uses crates.io Trusted Publishing and a short-lived GitHub OIDC token;
+do not add a long-lived registry token to repository secrets. Configure the `catalysh`
+crate's trusted publisher for repository `hexabyte8/catalysh` and workflow
+`release.yml`, with no GitHub environment restriction.
+
+Published crates.io versions are immutable. If a version is published accidentally, yank
+it with `cargo yank --vers <version> catalysh`; existing lockfiles can still use it, but
+Cargo excludes it from new resolutions. A lower, previously unused version can then be
+published, although the higher version remains visible in the registry history.
 
 ---
 

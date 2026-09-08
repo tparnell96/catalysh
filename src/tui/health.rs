@@ -5,17 +5,15 @@ use anyhow::{Context, Result};
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers},
     execute,
-    terminal::{
-        disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
-    },
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use ratatui::{
+    Frame, Terminal,
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Cell, Gauge, Paragraph, Row, Table, TableState, Tabs},
-    Frame, Terminal,
 };
 use serde::Deserialize;
 
@@ -302,7 +300,9 @@ fn value_to_pct(value: Option<&serde_json::Value>) -> u16 {
                 number.as_f64().unwrap_or_default().round() as i64
             }
         }
-        Some(serde_json::Value::String(text)) => text.parse::<f64>().unwrap_or_default().round() as i64,
+        Some(serde_json::Value::String(text)) => {
+            text.parse::<f64>().unwrap_or_default().round() as i64
+        }
         _ => 0,
     };
     pct.clamp(0, 100) as u16
@@ -320,22 +320,22 @@ fn run_app(
     loop {
         terminal.draw(|frame| ui(frame, app))?;
 
-        if event::poll(Duration::from_millis(200))? {
-            if let Event::Key(key_event) = event::read()? {
-                match key_event.code {
-                    KeyCode::Char('q') => return Ok(()),
-                    KeyCode::Char('c') if key_event.modifiers.contains(KeyModifiers::CONTROL) => {
-                        return Ok(())
-                    }
-                    KeyCode::Char('r') => runtime.block_on(fetch_data(app, config, token)),
-                    KeyCode::Tab => {
-                        app.time_range = app.time_range.next();
-                        runtime.block_on(fetch_data(app, config, token));
-                    }
-                    KeyCode::Up => app.previous_site(),
-                    KeyCode::Down => app.next_site(),
-                    _ => {}
+        if event::poll(Duration::from_millis(200))?
+            && let Event::Key(key_event) = event::read()?
+        {
+            match key_event.code {
+                KeyCode::Char('q') => return Ok(()),
+                KeyCode::Char('c') if key_event.modifiers.contains(KeyModifiers::CONTROL) => {
+                    return Ok(());
                 }
+                KeyCode::Char('r') => runtime.block_on(fetch_data(app, config, token)),
+                KeyCode::Tab => {
+                    app.time_range = app.time_range.next();
+                    runtime.block_on(fetch_data(app, config, token));
+                }
+                KeyCode::Up => app.previous_site(),
+                KeyCode::Down => app.next_site(),
+                _ => {}
             }
         }
     }
@@ -417,7 +417,12 @@ fn render_client_health(frame: &mut Frame, area: Rect, app: &HealthApp) {
 
     render_client_band(frame, rows[0], "Total clients", app.client_total.as_ref());
     render_client_band(frame, rows[1], "Wired clients", app.client_wired.as_ref());
-    render_client_band(frame, rows[2], "Wireless clients", app.client_wireless.as_ref());
+    render_client_band(
+        frame,
+        rows[2],
+        "Wireless clients",
+        app.client_wireless.as_ref(),
+    );
 }
 
 fn render_client_band(frame: &mut Frame, area: Rect, label: &str, band: Option<&ClientBand>) {

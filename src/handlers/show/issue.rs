@@ -35,7 +35,10 @@ pub fn handle_issue_command(subcommand: IssueCommands) {
                                         search_params.insert("deviceId".to_string(), device_id);
                                     }
                                     Err(e) => {
-                                        error!("Could not resolve device selector '{}': {}", input, e);
+                                        error!(
+                                            "Could not resolve device selector '{}': {}",
+                                            input, e
+                                        );
                                         return Ok(());
                                     }
                                 }

@@ -6,30 +6,66 @@ on:
       - 'v*.*.*'
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # ── Validate before building ────────────────────────────────────────────────
   validate:
-    name: Validate tag matches Cargo.toml version
+    name: Validate release source
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check version matches tag
+        with:
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libssl-dev
+
+      - name: Validate release tag and source branch
         shell: bash
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
-          CARGO_VERSION=$(grep '^version' Cargo.toml | head -1 | sed 's/.*= *"\(.*\)"/\1/')
-          if [ "$TAG" != "$CARGO_VERSION" ]; then
-            echo "Tag $TAG does not match Cargo.toml version $CARGO_VERSION"
+          if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Tag '$GITHUB_REF_NAME' is not a supported SemVer release tag"
             exit 1
           fi
-          echo "Version check passed: $TAG"
 
-  # ── Build release binaries ─────────────────────────────────────────────────
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Release tag must point to a commit contained in main"
+            exit 1
+          fi
+
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          CARGO_VERSION=$(cargo metadata --no-deps --format-version 1 |
+            jq -r '.packages[] | select(.name == "catalysh") | .version')
+          if [[ "$TAG_VERSION" != "$CARGO_VERSION" ]]; then
+            echo "::error::Tag version $TAG_VERSION does not match Cargo.toml version $CARGO_VERSION"
+            exit 1
+          fi
+
+          echo "Validated $GITHUB_REF_NAME from main"
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run tests
+        run: cargo test --all-features
+
   build:
     name: Build (${{ matrix.asset_name }})
     needs: validate
@@ -42,26 +78,32 @@ jobs:
             target: x86_64-unknown-linux-gnu
             artifact_name: catalysh
             asset_name: catalysh-linux-x86_64
+            strip_command: strip
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
             artifact_name: catalysh
             asset_name: catalysh-linux-x86_64-musl
+            strip_command: strip
           - os: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             artifact_name: catalysh
             asset_name: catalysh-linux-aarch64
+            strip_command: aarch64-linux-gnu-strip
           - os: macos-latest
             target: x86_64-apple-darwin
             artifact_name: catalysh
             asset_name: catalysh-macos-x86_64
+            strip_command: strip
           - os: macos-latest
             target: aarch64-apple-darwin
             artifact_name: catalysh
             asset_name: catalysh-macos-aarch64
+            strip_command: strip
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             artifact_name: catalysh.exe
             asset_name: catalysh-windows-x86_64.exe
+            strip_command: ''
 
     steps:
       - uses: actions/checkout@v4
@@ -83,32 +125,42 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu pkg-config libssl-dev
-          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> "$GITHUB_ENV"
 
       - name: Install system dependencies (Linux gnu / musl)
         if: matrix.os == 'ubuntu-latest' && matrix.target != 'aarch64-unknown-linux-gnu'
         run: sudo apt-get update && sudo apt-get install -y pkg-config libssl-dev
 
       - name: Build release binary
-        run: cargo build --release --target ${{ matrix.target }}
+        env:
+          TARGET: ${{ matrix.target }}
+        run: cargo build --release --target "$TARGET"
 
       - name: Strip binary (Linux / macOS)
-        if: matrix.os != 'windows-latest'
-        run: strip target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+        if: matrix.strip_command != ''
+        env:
+          ARTIFACT_NAME: ${{ matrix.artifact_name }}
+          STRIP_COMMAND: ${{ matrix.strip_command }}
+          TARGET: ${{ matrix.target }}
+        run: '"$STRIP_COMMAND" "target/$TARGET/release/$ARTIFACT_NAME"'
 
       - name: Stage binary
         shell: bash
-        run: cp target/${{ matrix.target }}/release/${{ matrix.artifact_name }} ${{ matrix.asset_name }}
+        env:
+          ARTIFACT_NAME: ${{ matrix.artifact_name }}
+          ASSET_NAME: ${{ matrix.asset_name }}
+          TARGET: ${{ matrix.target }}
+        run: cp "target/$TARGET/release/$ARTIFACT_NAME" "$ASSET_NAME"
 
       - name: Generate SHA-256 checksum
         shell: bash
+        env:
+          ASSET_NAME: ${{ matrix.asset_name }}
         run: |
           if [[ "$RUNNER_OS" == "macOS" ]]; then
-            shasum -a 256 ${{ matrix.asset_name }} > ${{ matrix.asset_name }}.sha256
-          elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            certutil -hashfile ${{ matrix.asset_name }} SHA256 | grep -v "hash" > ${{ matrix.asset_name }}.sha256
+            shasum -a 256 "$ASSET_NAME" > "$ASSET_NAME.sha256"
           else
-            sha256sum ${{ matrix.asset_name }} > ${{ matrix.asset_name }}.sha256
+            sha256sum "$ASSET_NAME" > "$ASSET_NAME.sha256"
           fi
 
       - name: Upload binary artifact
@@ -119,11 +171,12 @@ jobs:
             ${{ matrix.asset_name }}
             ${{ matrix.asset_name }}.sha256
 
-  # ── Create GitHub release ──────────────────────────────────────────────────
   release:
     name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -139,7 +192,7 @@ jobs:
       - name: Generate combined checksums file
         run: |
           cd artifacts
-          cat *.sha256 > SHA256SUMS.txt
+          cat ./*.sha256 > SHA256SUMS.txt
           echo "Combined checksums:"
           cat SHA256SUMS.txt
 
@@ -155,11 +208,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ── Publish to crates.io ───────────────────────────────────────────────────
   publish:
     name: Publish to crates.io
     needs: release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -167,9 +222,13 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
+      - uses: rust-lang/crates-io-auth-action@v1
+        id: crates-io-auth
+
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y pkg-config libssl-dev
 
       - name: Publish
-        run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
+        run: cargo publish --locked
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.crates-io-auth.outputs.token }}

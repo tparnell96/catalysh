@@ -4,7 +4,7 @@ use crate::commands::show::task::TaskCommands;
 use crate::helpers::command_utils;
 use chrono::DateTime;
 use log::error;
-use prettytable::{row, Table};
+use prettytable::{Table, row};
 
 pub fn handle_task_command(subcommand: TaskCommands) {
     command_utils::execute_with_context(|ctx| async move {

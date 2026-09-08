@@ -5,8 +5,8 @@ pub mod tui;
 pub mod workflow;
 
 use crate::handlers::{
-    clear_screen, handle_app_command, handle_run_command, handle_show_command,
-    handle_tui_command, handle_workflow_command,
+    clear_screen, handle_app_command, handle_run_command, handle_show_command, handle_tui_command,
+    handle_workflow_command,
 };
 use crate::helpers::output::OutputFormat;
 use clap::{Parser, Subcommand};

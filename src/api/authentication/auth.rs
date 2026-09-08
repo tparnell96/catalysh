@@ -1,8 +1,8 @@
 use crate::app::auth_storage::AuthStorage;
 use crate::app::config::{Config, CredentialMode};
 use crate::helpers::utils;
-use anyhow::{anyhow, Result};
-use rusqlite::{params, Connection};
+use anyhow::{Result, anyhow};
+use rusqlite::{Connection, params};
 
 use reqwest::Client;
 use rpassword;
@@ -24,10 +24,10 @@ pub struct Token {
 
 pub async fn authenticate(config: &Config) -> Result<Token> {
     // Check for existing token
-    if let Some(token) = load_token()? {
-        if token.expires_at > utils::current_timestamp() {
-            return Ok(token);
-        }
+    if let Some(token) = load_token()?
+        && token.expires_at > utils::current_timestamp()
+    {
+        return Ok(token);
     }
 
     // Token is missing or expired — resolve the password
@@ -42,7 +42,7 @@ pub async fn authenticate(config: &Config) -> Result<Token> {
                      Please run 'app config reset-credentials' and reconfigure.",
                         config.username,
                         e
-                    ))
+                    ));
                 }
             }
         }
@@ -66,7 +66,9 @@ pub async fn authenticate(config: &Config) -> Result<Token> {
 
     if !resp.status().is_success() {
         if resp.status() == reqwest::StatusCode::UNAUTHORIZED {
-            return Err(anyhow!("Authentication failed: Invalid credentials. Please run 'app config reset' to reconfigure."));
+            return Err(anyhow!(
+                "Authentication failed: Invalid credentials. Please run 'app config reset' to reconfigure."
+            ));
         } else {
             return Err(anyhow!(
                 "Authentication failed with status: {} - {}",

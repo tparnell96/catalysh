@@ -2,7 +2,7 @@ use crate::api::health;
 use crate::commands::show::health::HealthCommands;
 use crate::helpers::command_utils;
 use log::error;
-use prettytable::{row, Table};
+use prettytable::{Table, row};
 
 fn json_value(value: &Option<serde_json::Value>) -> String {
     value

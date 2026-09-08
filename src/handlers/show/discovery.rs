@@ -3,7 +3,7 @@ use crate::api::discovery;
 use crate::commands::show::discovery::DiscoveryCommands;
 use crate::helpers::command_utils;
 use log::error;
-use prettytable::{row, Table};
+use prettytable::{Table, row};
 
 pub fn handle_discovery_command(subcommand: DiscoveryCommands) {
     command_utils::execute_with_context(|ctx| async move {
