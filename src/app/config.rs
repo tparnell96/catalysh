@@ -234,7 +234,9 @@ fn setup_config() -> Result<Config> {
     let mut verify_ssl_input = String::new();
     let mut credential_mode_input = String::new();
 
-    print!("Enter Cisco DNAC URL without a / at the end (e.g., https://dnac.example.com, https://192.168.1.20): ");
+    print!(
+        "Enter Cisco DNAC URL without a / at the end (e.g., https://dnac.example.com, https://192.168.1.20): "
+    );
     io::stdout().flush()?;
     io::stdin().read_line(&mut dnac_url)?;
     dnac_url = dnac_url.trim().to_string();
@@ -249,11 +251,15 @@ fn setup_config() -> Result<Config> {
     io::stdin().read_line(&mut verify_ssl_input)?;
     let verify_ssl = verify_ssl_input.trim().to_lowercase() == "y";
 
-    print!("Store credentials on this device? (y = store encrypted on-device, n = prompt each session) [y/n]: ");
+    print!(
+        "Store credentials on this device? (y = store encrypted on-device, n = prompt each session) [y/n]: "
+    );
     io::stdout().flush()?;
     io::stdin().read_line(&mut credential_mode_input)?;
     let credential_mode = if credential_mode_input.trim().to_lowercase() == "n" {
-        println!("Session-only mode selected. You will be prompted for your password each time the token expires.");
+        println!(
+            "Session-only mode selected. You will be prompted for your password each time the token expires."
+        );
         CredentialMode::SessionOnly
     } else {
         CredentialMode::StoreOnDevice

@@ -3,7 +3,7 @@ use crate::api::advisory;
 use crate::commands::show::advisory::AdvisoryCommands;
 use crate::helpers::command_utils;
 use log::error;
-use prettytable::{row, Table};
+use prettytable::{Table, row};
 
 pub fn handle_advisory_command(subcommand: AdvisoryCommands) {
     command_utils::execute_with_context(|ctx| async move {

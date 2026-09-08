@@ -1,9 +1,9 @@
-use crate::api::sites::{getsitelist, sitehealth};
 use crate::api::sites::sitehealth::{SiteHealth, SiteHealthSummary};
+use crate::api::sites::{getsitelist, sitehealth};
 use crate::commands::show::site::{SiteCommands, SiteHealthFilter};
 use crate::helpers::command_utils;
 use log::error;
-use prettytable::{row, table, Table};
+use prettytable::{Table, row, table};
 use serde::Serialize;
 use std::collections::HashMap;
 
@@ -67,9 +67,10 @@ fn build_site_health_views(
 
             SiteHealthView {
                 site_id: detail.site_id.clone(),
-                site_name: detail.site_name.clone().or_else(|| {
-                    summary.and_then(|item| item.name.as_ref().map(ToOwned::to_owned))
-                }),
+                site_name: detail
+                    .site_name
+                    .clone()
+                    .or_else(|| summary.and_then(|item| item.name.as_ref().map(ToOwned::to_owned))),
                 site_hierarchy: summary
                     .and_then(|item| item.site_hierarchy.as_ref().map(ToOwned::to_owned)),
                 site_type: detail.site_type.clone().or_else(|| {
@@ -160,13 +161,9 @@ pub fn handle_site_command(subcommand: SiteCommands) {
             },
             SiteCommands::Health { filter } => match filter {
                 SiteHealthFilter::All => {
-                    let details = sitehealth::get_site_health_by_type(
-                        &ctx.config,
-                        &ctx.token,
-                        "area",
-                        None,
-                    )
-                    .await;
+                    let details =
+                        sitehealth::get_site_health_by_type(&ctx.config, &ctx.token, "area", None)
+                            .await;
                     let summaries = sitehealth::get_site_health_summaries(
                         &ctx.config,
                         &ctx.token,
@@ -236,13 +233,9 @@ pub fn handle_site_command(subcommand: SiteCommands) {
                     }
                 }
                 SiteHealthFilter::Floor { name } => {
-                    let details = sitehealth::get_site_health_by_type(
-                        &ctx.config,
-                        &ctx.token,
-                        "floor",
-                        None,
-                    )
-                    .await;
+                    let details =
+                        sitehealth::get_site_health_by_type(&ctx.config, &ctx.token, "floor", None)
+                            .await;
                     let summaries = sitehealth::get_site_health_summaries(
                         &ctx.config,
                         &ctx.token,
@@ -296,7 +289,9 @@ pub fn handle_site_command(subcommand: SiteCommands) {
                             if matching_summaries.is_empty() {
                                 println!("No site health data found for '{}'.", selector);
                             } else {
-                                match sitehealth::get_site_health(&ctx.config, &ctx.token, None).await {
+                                match sitehealth::get_site_health(&ctx.config, &ctx.token, None)
+                                    .await
+                                {
                                     Ok(detail_response) => {
                                         let matching_ids: HashMap<String, SiteHealthSummary> =
                                             matching_summaries

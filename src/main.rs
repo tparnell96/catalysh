@@ -7,9 +7,9 @@ mod handlers;
 mod tui;
 
 use clap::Parser;
-use clap_repl::reedline::{DefaultPrompt, DefaultPromptSegment, FileBackedHistory};
 use clap_repl::ClapEditor;
-use commands::{route_command, Cli};
+use clap_repl::reedline::{DefaultPrompt, DefaultPromptSegment, FileBackedHistory};
+use commands::{Cli, route_command};
 use dirs::home_dir;
 use std::fs;
 use std::path::PathBuf;

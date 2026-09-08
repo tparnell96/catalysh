@@ -3,7 +3,7 @@
 
 use crate::api::authentication::auth::{self, Token};
 use crate::app::config::Config;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use reqwest::{Certificate, Client};
 
 /// Build a `reqwest::Client` respecting the SSL verification setting and any
@@ -81,7 +81,6 @@ where
         return Ok(resp.json::<T>().await?);
     }
 }
-
 
 /// Send an authenticated GET request with query parameters, reauthenticating once on 401.
 pub async fn get_authenticated_with_query<T, Q>(

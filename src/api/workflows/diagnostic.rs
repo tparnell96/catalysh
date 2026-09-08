@@ -8,7 +8,7 @@
 use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

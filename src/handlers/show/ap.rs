@@ -5,7 +5,7 @@ use crate::api::wireless::{accesspointconfig, rfprofile};
 use crate::commands::show::ap::ApCommands;
 use crate::helpers::{command_utils, output, resolver, utils};
 use log::{error, info};
-use prettytable::{row, table, Table};
+use prettytable::{Table, row, table};
 
 pub fn handle_ap_command(subcommand: ApCommands) {
     command_utils::execute_with_context(|ctx| async move {

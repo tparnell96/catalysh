@@ -1,11 +1,11 @@
 use aes_gcm::{
-    aead::{Aead, KeyInit},
     Aes256Gcm, Nonce,
+    aead::{Aead, KeyInit},
 };
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use argon2::{Argon2, Params, Version};
-use rand::{rngs::OsRng, RngCore};
-use rusqlite::{params, Connection, OpenFlags};
+use rand::{RngCore, rngs::OsRng};
+use rusqlite::{Connection, OpenFlags, params};
 use std::fs;
 use std::path::Path;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -83,7 +83,9 @@ impl AuthStorage {
             } else if let Ok(id) = fs::read_to_string("/var/lib/dbus/machine-id") {
                 id
             } else {
-                return Err(anyhow!("Could not read machine-id from either /etc/machine-id or /var/lib/dbus/machine-id"));
+                return Err(anyhow!(
+                    "Could not read machine-id from either /etc/machine-id or /var/lib/dbus/machine-id"
+                ));
             };
 
             Ok(machine_id.trim().as_bytes().to_vec())

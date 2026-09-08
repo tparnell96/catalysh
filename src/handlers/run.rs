@@ -3,7 +3,7 @@ use crate::api::commandrunner;
 use crate::commands::run::{CommandRunnerCommands, RunCommands};
 use crate::helpers::{command_utils, resolver};
 use log::{error, warn};
-use prettytable::{row, Table};
+use prettytable::{Table, row};
 
 pub fn handle_run_command(subcommand: RunCommands) {
     match subcommand {

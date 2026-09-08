@@ -7,7 +7,7 @@ use crate::commands::workflow::{
 use crate::helpers::{command_utils, output, resolver};
 use chrono::DateTime;
 use log::error;
-use prettytable::{row, Table};
+use prettytable::{Table, row};
 
 pub fn handle_workflow_command(subcommand: WorkflowCommands) {
     match subcommand {
@@ -23,15 +23,19 @@ pub fn handle_workflow_command(subcommand: WorkflowCommands) {
 fn handle_ap_workflow(subcommand: ApWorkflowCommands) {
     command_utils::execute_with_context(|ctx| async move {
         match subcommand {
-            ApWorkflowCommands::Provision { ap, site, rf_profile } => {
-                let ap_mac = match resolver::resolve_ap_ethernet_mac(&ctx.config, &ctx.token, &ap).await
-                {
-                    Ok(mac) => mac,
-                    Err(e) => {
-                        error!("Could not resolve AP '{}': {}", ap, e);
-                        return Ok(());
-                    }
-                };
+            ApWorkflowCommands::Provision {
+                ap,
+                site,
+                rf_profile,
+            } => {
+                let ap_mac =
+                    match resolver::resolve_ap_ethernet_mac(&ctx.config, &ctx.token, &ap).await {
+                        Ok(mac) => mac,
+                        Err(e) => {
+                            error!("Could not resolve AP '{}': {}", ap, e);
+                            return Ok(());
+                        }
+                    };
                 let ap_name = resolver::resolve_device(&ctx.config, &ctx.token, &ap)
                     .await
                     .ok()
@@ -66,7 +70,8 @@ fn handle_ap_workflow(subcommand: ApWorkflowCommands) {
                         }
                     };
 
-                match approvision::get_provision_status(&ctx.config, &ctx.token, &controller_id).await
+                match approvision::get_provision_status(&ctx.config, &ctx.token, &controller_id)
+                    .await
                 {
                     Ok(status) => {
                         if output::is_json() {
@@ -75,10 +80,7 @@ fn handle_ap_workflow(subcommand: ApWorkflowCommands) {
                             let mut table = Table::new();
                             table.add_row(row![FbFy => "Field", "Value"]);
                             let response = status.response.as_ref();
-                            table.add_row(row![
-                                "Controller UUID",
-                                controller_id
-                            ]);
+                            table.add_row(row!["Controller UUID", controller_id]);
                             table.add_row(row![
                                 "Status",
                                 response
@@ -101,7 +103,10 @@ fn handle_ap_workflow(subcommand: ApWorkflowCommands) {
                     ),
                 }
             }
-            ApWorkflowCommands::FactoryReset { aps, keep_static_ip } => {
+            ApWorkflowCommands::FactoryReset {
+                aps,
+                keep_static_ip,
+            } => {
                 let _keep_static_ip = keep_static_ip;
                 let selectors: Vec<String> = aps
                     .split(',')
@@ -116,7 +121,8 @@ fn handle_ap_workflow(subcommand: ApWorkflowCommands) {
 
                 let mut mac_addresses = Vec::with_capacity(selectors.len());
                 for selector in &selectors {
-                    match resolver::resolve_ap_ethernet_mac(&ctx.config, &ctx.token, selector).await {
+                    match resolver::resolve_ap_ethernet_mac(&ctx.config, &ctx.token, selector).await
+                    {
                         Ok(mac) => mac_addresses.push(mac),
                         Err(e) => {
                             error!("Could not resolve AP '{}': {}", selector, e);
@@ -155,7 +161,9 @@ fn handle_pnp(subcommand: PnpCommands) {
                         } else {
                             println!("\nPnP Workflows ({} returned):", workflows.len());
                             let mut t = Table::new();
-                            t.add_row(row![FbFy => "ID", "Name", "Type", "State", "Use State", "Added"]);
+                            t.add_row(
+                                row![FbFy => "ID", "Name", "Type", "State", "Use State", "Added"],
+                            );
                             for w in &workflows {
                                 t.add_row(row![
                                     w.id.as_deref().unwrap_or("—"),
@@ -180,33 +188,39 @@ fn handle_pnp(subcommand: PnpCommands) {
                         } else {
                             println!("\nPnP Workflow: {}", w.name.as_deref().unwrap_or(&id));
                             println!("  ID:          {}", w.id.as_deref().unwrap_or("—"));
-                            println!("  Type:        {}", w.workflow_type.as_deref().unwrap_or("—"));
+                            println!(
+                                "  Type:        {}",
+                                w.workflow_type.as_deref().unwrap_or("—")
+                            );
                             println!("  State:       {}", w.state.as_deref().unwrap_or("—"));
                             println!("  Use State:   {}", w.use_state.as_deref().unwrap_or("—"));
                             println!("  Description: {}", w.description.as_deref().unwrap_or("—"));
                             println!("  Added:       {}", fmt_ts(w.added_on));
                             println!("  Start:       {}", fmt_ts(w.start_time));
                             println!("  End:         {}", fmt_ts(w.end_time));
-                            if let Some(tasks) = &w.tasks {
-                                if !tasks.is_empty() {
-                                    println!("\n  Tasks:");
-                                    let mut t = Table::new();
-                                    t.add_row(row![Fy => "Seq", "Name", "Type", "State", "Duration"]);
-                                    for task in tasks {
-                                        let duration = match (task.start_time, task.end_time) {
-                                            (Some(s), Some(e)) => format!("{}ms", e - s),
-                                            _ => "—".to_string(),
-                                        };
-                                        t.add_row(row![
-                                            task.task_seq_no.map(|n| n.to_string()).as_deref().unwrap_or("—"),
-                                            task.name.as_deref().unwrap_or("—"),
-                                            task.task_type.as_deref().unwrap_or("—"),
-                                            task.state.as_deref().unwrap_or("—"),
-                                            duration,
-                                        ]);
-                                    }
-                                    t.printstd();
+                            if let Some(tasks) = &w.tasks
+                                && !tasks.is_empty()
+                            {
+                                println!("\n  Tasks:");
+                                let mut t = Table::new();
+                                t.add_row(row![Fy => "Seq", "Name", "Type", "State", "Duration"]);
+                                for task in tasks {
+                                    let duration = match (task.start_time, task.end_time) {
+                                        (Some(s), Some(e)) => format!("{}ms", e - s),
+                                        _ => "—".to_string(),
+                                    };
+                                    t.add_row(row![
+                                        task.task_seq_no
+                                            .map(|n| n.to_string())
+                                            .as_deref()
+                                            .unwrap_or("—"),
+                                        task.name.as_deref().unwrap_or("—"),
+                                        task.task_type.as_deref().unwrap_or("—"),
+                                        task.state.as_deref().unwrap_or("—"),
+                                        duration,
+                                    ]);
                                 }
+                                t.printstd();
                             }
                         }
                     }
@@ -229,7 +243,11 @@ fn handle_pnp(subcommand: PnpCommands) {
 fn handle_diagnostic(subcommand: DiagnosticCommands) {
     command_utils::execute_with_context(|ctx| async move {
         match subcommand {
-            DiagnosticCommands::List { status, limit, offset } => {
+            DiagnosticCommands::List {
+                status,
+                limit,
+                offset,
+            } => {
                 match diagnostic::list_diagnostic_workflows(
                     &ctx.config,
                     &ctx.token,
@@ -246,7 +264,10 @@ fn handle_diagnostic(subcommand: DiagnosticCommands) {
                         if output::is_json() {
                             output::print_json(&workflows);
                         } else {
-                            println!("\nDiagnostic Validation Workflows ({} returned):", workflows.len());
+                            println!(
+                                "\nDiagnostic Validation Workflows ({} returned):",
+                                workflows.len()
+                            );
                             let mut t = Table::new();
                             t.add_row(row![FbFy => "ID", "Name", "Status", "Validation Status", "Submitted", "End"]);
                             for w in &workflows {
@@ -271,11 +292,23 @@ fn handle_diagnostic(subcommand: DiagnosticCommands) {
                         if output::is_json() {
                             output::print_json(&w);
                         } else {
-                            println!("\nDiagnostic Workflow: {}", w.name.as_deref().unwrap_or(&id));
+                            println!(
+                                "\nDiagnostic Workflow: {}",
+                                w.name.as_deref().unwrap_or(&id)
+                            );
                             println!("  ID:                {}", w.id.as_deref().unwrap_or("—"));
-                            println!("  Run Status:        {}", w.run_status.as_deref().unwrap_or("—"));
-                            println!("  Validation Status: {}", w.validation_status.as_deref().unwrap_or("—"));
-                            println!("  Description:       {}", w.description.as_deref().unwrap_or("—"));
+                            println!(
+                                "  Run Status:        {}",
+                                w.run_status.as_deref().unwrap_or("—")
+                            );
+                            println!(
+                                "  Validation Status: {}",
+                                w.validation_status.as_deref().unwrap_or("—")
+                            );
+                            println!(
+                                "  Description:       {}",
+                                w.description.as_deref().unwrap_or("—")
+                            );
                             println!("  Submitted:         {}", fmt_ts(w.submit_time));
                             println!("  Started:           {}", fmt_ts(w.start_time));
                             println!("  Ended:             {}", fmt_ts(w.end_time));
@@ -293,7 +326,11 @@ fn handle_diagnostic(subcommand: DiagnosticCommands) {
                     Err(e) => error!("Failed to get diagnostic workflow count: {}", e),
                 }
             }
-            DiagnosticCommands::Run { name, description, validation_sets } => {
+            DiagnosticCommands::Run {
+                name,
+                description,
+                validation_sets,
+            } => {
                 let set_ids: Vec<String> = validation_sets
                     .split(',')
                     .map(|s| s.trim().to_string())
@@ -362,7 +399,10 @@ fn handle_replacement(subcommand: ReplacementCommands) {
                     Err(e) => error!("Failed to list replacement workflows: {}", e),
                 }
             }
-            ReplacementCommands::Deploy { faulty_serial, replacement_serial } => {
+            ReplacementCommands::Deploy {
+                faulty_serial,
+                replacement_serial,
+            } => {
                 println!(
                     "Deploying device replacement: {} → {}",
                     faulty_serial, replacement_serial
@@ -391,7 +431,7 @@ fn handle_replacement(subcommand: ReplacementCommands) {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 fn fmt_ts(ts: Option<i64>) -> String {
-    ts.and_then(|ms| DateTime::from_timestamp_millis(ms))
+    ts.and_then(DateTime::from_timestamp_millis)
         .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string())
         .unwrap_or_else(|| "—".to_string())
 }

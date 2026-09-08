@@ -3,7 +3,7 @@
 use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -81,7 +81,8 @@ pub async fn provision_ap(
         mac_address: mac.to_string(),
     };
 
-    let response = post_json::<_, ApProvisionResponse>(config, token, AP_PROVISION_V2_PATH, &request).await?;
+    let response =
+        post_json::<_, ApProvisionResponse>(config, token, AP_PROVISION_V2_PATH, &request).await?;
     extract_task_id(response.response, "AP provision")
 }
 
@@ -132,7 +133,8 @@ pub async fn factory_reset_ap(
     };
 
     let response =
-        post_json::<_, FactoryResetResponse>(config, token, AP_FACTORY_RESET_PATH, &request).await?;
+        post_json::<_, FactoryResetResponse>(config, token, AP_FACTORY_RESET_PATH, &request)
+            .await?;
     extract_task_id(response.response, "AP factory reset")
 }
 

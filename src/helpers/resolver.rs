@@ -4,7 +4,7 @@
 use crate::api::authentication::auth::Token;
 use crate::api::devices::getdevicelist::{self, AllDevices};
 use crate::app::config::Config;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 
 /// Normalise a MAC address string by removing all separators (`:`, `-`, `.`) and
 /// converting to lowercase so different formats compare equal.
@@ -27,38 +27,38 @@ pub async fn resolve_device(config: &Config, token: &Token, selector: &str) -> R
 
     let matched = devices.into_iter().find(|d| {
         // 1. Exact management IP match
-        if let Some(ref ip) = d.management_ip_address {
-            if ip == selector {
-                return true;
-            }
+        if let Some(ref ip) = d.management_ip_address
+            && ip == selector
+        {
+            return true;
         }
 
         // 2. Case-insensitive hostname match (partial allowed)
-        if let Some(ref h) = d.hostname {
-            if h.to_lowercase().contains(&sel_lower) {
-                return true;
-            }
+        if let Some(ref h) = d.hostname
+            && h.to_lowercase().contains(&sel_lower)
+        {
+            return true;
         }
 
         // 3. Device management MAC match (normalised)
-        if let Some(ref mac) = d.mac_address {
-            if norm_mac(mac) == sel_mac {
-                return true;
-            }
+        if let Some(ref mac) = d.mac_address
+            && norm_mac(mac) == sel_mac
+        {
+            return true;
         }
 
         // 4. AP ethernet MAC match (normalised)
-        if let Some(ref mac) = d.ap_ethernet_mac_address {
-            if norm_mac(mac) == sel_mac {
-                return true;
-            }
+        if let Some(ref mac) = d.ap_ethernet_mac_address
+            && norm_mac(mac) == sel_mac
+        {
+            return true;
         }
 
         // 5. Serial number match (case-insensitive)
-        if let Some(ref serial) = d.serial_number {
-            if serial.to_lowercase() == sel_lower {
-                return true;
-            }
+        if let Some(ref serial) = d.serial_number
+            && serial.to_lowercase() == sel_lower
+        {
+            return true;
         }
 
         false

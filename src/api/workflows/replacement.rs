@@ -6,7 +6,7 @@
 use crate::api::authentication::auth::Token;
 use crate::app::config::Config;
 use crate::helpers::http;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,10 +43,7 @@ pub async fn list_replacement_workflows(
     token: &Token,
 ) -> Result<Vec<DeviceReplacementStatus>> {
     let client = http::build_client(config)?;
-    let url = format!(
-        "{}/dna/intent/api/v1/device-replacement",
-        config.dnac_url
-    );
+    let url = format!("{}/dna/intent/api/v1/device-replacement", config.dnac_url);
     let resp: ReplacementListResponse =
         http::get_authenticated(&client, config, token, &url).await?;
     Ok(resp.response.unwrap_or_default())

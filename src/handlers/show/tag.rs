@@ -3,7 +3,7 @@ use crate::api::tags;
 use crate::commands::show::tag::TagCommands;
 use crate::helpers::command_utils;
 use log::error;
-use prettytable::{row, Table};
+use prettytable::{Table, row};
 
 pub fn handle_tag_command(subcommand: TagCommands) {
     command_utils::execute_with_context(|ctx| async move {

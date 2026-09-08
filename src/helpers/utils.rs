@@ -26,7 +26,7 @@ use crate::api::issues::getissuelist::{Issue as IssueListIssue, IssueListRespons
 use crate::api::wireless::accesspointconfig::ApConfig;
 
 use chrono::{DateTime, Utc};
-use prettytable::{format, row, Table};
+use prettytable::{Table, format, row};
 
 pub fn current_timestamp() -> u64 {
     Utc::now().timestamp_millis() as u64

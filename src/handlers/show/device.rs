@@ -9,7 +9,7 @@ use crate::commands::show::device::{
 use crate::helpers::{command_utils, output, resolver, utils};
 use chrono::DateTime;
 use log::error;
-use prettytable::{row, Table};
+use prettytable::{Table, row};
 
 pub fn handle_device_command(subcommand: DeviceCommands) {
     command_utils::execute_with_context(|ctx| async move {
@@ -78,15 +78,15 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                 filter: DeviceEnrichmentFilter::By { selector },
             } => match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
                 Ok(device) => {
-                    let (entity_type, entity_value) = if let Some(ref ip) = device.management_ip_address
-                    {
-                        ("ip_address", ip.clone())
-                    } else if let Some(ref mac) = device.mac_address {
-                        ("mac_address", mac.clone())
-                    } else {
-                        error!("Resolved device has neither IP nor MAC — cannot enrich");
-                        return Ok(());
-                    };
+                    let (entity_type, entity_value) =
+                        if let Some(ref ip) = device.management_ip_address {
+                            ("ip_address", ip.clone())
+                        } else if let Some(ref mac) = device.mac_address {
+                            ("mac_address", mac.clone())
+                        } else {
+                            error!("Resolved device has neither IP nor MAC — cannot enrich");
+                            return Ok(());
+                        };
                     match devicedetailenrichment::get_device_enrichment(
                         &ctx.config,
                         &ctx.token,
@@ -102,13 +102,14 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                 Err(e) => error!("Could not resolve device '{}': {}", selector, e),
             },
             DeviceCommands::Neighbors { selector } => {
-                let device = match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
-                    Ok(d) => d,
-                    Err(e) => {
-                        error!("Could not resolve device '{}': {}", selector, e);
-                        return Ok(());
-                    }
-                };
+                let device =
+                    match resolver::resolve_device(&ctx.config, &ctx.token, &selector).await {
+                        Ok(d) => d,
+                        Err(e) => {
+                            error!("Could not resolve device '{}': {}", selector, e);
+                            return Ok(());
+                        }
+                    };
                 let device_uuid = match device.id.as_deref() {
                     Some(id) => id.to_string(),
                     None => {
@@ -122,37 +123,37 @@ pub fn handle_device_command(subcommand: DeviceCommands) {
                     .clone()
                     .unwrap_or_else(|| "N/A".to_string());
 
-                let neighbors = match interfaces::get_device_neighbors(
-                    &ctx.config,
-                    &ctx.token,
-                    &device_uuid,
-                )
-                .await
-                {
-                    Ok(n) if !n.is_empty() => n,
-                    _ => match interfaces::get_neighbors_from_topology(
-                        &ctx.config,
-                        &ctx.token,
-                        &hostname,
-                        &mgmt_ip,
-                    )
-                    .await
+                let neighbors =
+                    match interfaces::get_device_neighbors(&ctx.config, &ctx.token, &device_uuid)
+                        .await
                     {
-                        Ok(n) => n,
-                        Err(e) => {
-                            error!("Failed to retrieve neighbors: {}", e);
-                            return Ok(());
-                        }
-                    },
-                };
+                        Ok(n) if !n.is_empty() => n,
+                        _ => match interfaces::get_neighbors_from_topology(
+                            &ctx.config,
+                            &ctx.token,
+                            &hostname,
+                            &mgmt_ip,
+                        )
+                        .await
+                        {
+                            Ok(n) => n,
+                            Err(e) => {
+                                error!("Failed to retrieve neighbors: {}", e);
+                                return Ok(());
+                            }
+                        },
+                    };
 
                 if neighbors.is_empty() {
                     println!("No neighbors found for {} ({})", hostname, mgmt_ip);
                 } else if output::is_json() {
                     output::print_json(&neighbors);
                 } else {
-                    println!("
-Neighbors: {} ({})", hostname, mgmt_ip);
+                    println!(
+                        "
+Neighbors: {} ({})",
+                        hostname, mgmt_ip
+                    );
                     let mut t = Table::new();
                     t.add_row(row![FbFy => "Local Port", "Status", "Connected Device", "Neighbor Port", "Capabilities"]);
                     for n in &neighbors {
