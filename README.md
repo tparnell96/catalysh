@@ -198,7 +198,8 @@ catalysh> -o json show site list
 
 | Subcommand | Description |
 |---|---|
-| `show ap config <mac>` | AP configuration by MAC address |
+| `show ap config <selector>` | AP configuration by hostname, management IP, or MAC address |
+| `show ap neighbors <selector>` | AP uplink switch, connected interface, status, VLAN, speed, and description |
 | `show ap rf-profile` | All RF profiles |
 
 ### show tag
